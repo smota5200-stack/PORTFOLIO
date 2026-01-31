@@ -1,26 +1,487 @@
 @import "tailwindcss";
 
+/* ============================================
+   iGAMING NEON GREEN THEME
+   Dark + #bcd200 | Professional | Premium
+   ============================================ */
+
+/* GPU Acceleration for smooth scroll */
+.gpu-accelerate {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base Colors - Deep Dark */
+  --background: #030305;
+  --background-secondary: #070710;
+  --background-tertiary: #0A0A14;
+  --foreground: #F8F8F8;
+  --foreground-muted: #8A8A9A;
+
+  /* Primary - Neon Green #bcd200 */
+  --primary-50: #F5F9D6;
+  --primary-100: #EBF3AD;
+  --primary-200: #DFEC84;
+  --primary-300: #D4E65B;
+  --primary-400: #C8DF32;
+  --primary-500: #bcd200;
+  --primary-600: #9AB000;
+  --primary-700: #788D00;
+  --primary-800: #566A00;
+
+  /* Accent - Electric Cyan */
+  --accent-cyan: #00D4FF;
+  --accent-cyan-dark: #00A3CC;
+
+  /* Accent - Hot Pink */
+  --accent-pink: #FF0080;
+  --accent-pink-dark: #CC0066;
+
+  /* Surface */
+  --surface-primary: #0A0A14;
+  --surface-secondary: #0E0E1A;
+  --surface-elevated: #121220;
+  --surface-hover: #181830;
+
+  /* Borders */
+  --border-subtle: rgba(188, 210, 0, 0.08);
+  --border-default: rgba(188, 210, 0, 0.15);
+  --border-strong: rgba(188, 210, 0, 0.25);
+
+  /* Shadows & Glows */
+  --shadow-primary: 0 0 40px rgba(188, 210, 0, 0.12);
+  --shadow-primary-lg: 0 0 80px rgba(188, 210, 0, 0.18);
+  --glow-primary: 0 0 20px rgba(188, 210, 0, 0.4);
+  --glow-cyan: 0 0 20px rgba(0, 212, 255, 0.3);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Noise Texture Overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.018;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+::selection {
+  background: var(--primary-500);
+  color: var(--background);
+}
+
+/* Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary-500) 0%, var(--primary-700) 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--primary-400) 0%, var(--primary-600) 100%);
+}
+
+/* ============================================
+   NEON GREEN TYPOGRAPHY
+   ============================================ */
+
+/* Neon Gradient */
+.text-neon-gradient {
+  background: linear-gradient(180deg,
+      #EBF3AD 0%,
+      #D4E65B 25%,
+      #bcd200 50%,
+      #9AB000 75%,
+      #bcd200 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Shimmering Neon */
+.text-gradient-neon {
+  background: linear-gradient(90deg,
+      #788D00 0%,
+      #bcd200 25%,
+      #F5F9D6 50%,
+      #bcd200 75%,
+      #788D00 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+
+  0%,
+  100% {
+    background-position: 0% center;
+  }
+
+  50% {
+    background-position: 100% center;
+  }
+}
+
+/* Subtle Glow */
+.text-glow-neon {
+  text-shadow: 0 0 30px rgba(188, 210, 0, 0.4);
+}
+
+/* ============================================
+   PREMIUM CARD STYLES
+   ============================================ */
+
+.card-premium {
+  background: linear-gradient(135deg,
+      rgba(14, 14, 26, 0.95) 0%,
+      rgba(10, 10, 20, 0.98) 100%);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-premium::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(188, 210, 0, 0.4) 50%,
+      transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-premium:hover {
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-4px);
+}
+
+.card-premium:hover::before {
+  opacity: 1;
+}
+
+/* ============================================
+   PREMIUM BUTTON STYLES
+   ============================================ */
+
+.btn-fortune {
+  position: relative;
+  background: linear-gradient(180deg,
+      #D4E65B 0%,
+      #bcd200 25%,
+      #9AB000 60%,
+      #788D00 100%);
+  color: #0A0A14;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 32px;
+  overflow: hidden;
+  box-shadow:
+    0 4px 20px rgba(188, 210, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-fortune:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 30px rgba(188, 210, 0, 0.35),
+    0 0 60px rgba(188, 210, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-fortune::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.25),
+      transparent);
+  transition: left 0.6s ease;
+}
+
+.btn-fortune:hover::after {
+  left: 100%;
+}
+
+/* ============================================
+   HERO STYLES
+   ============================================ */
+
+.hero-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(188, 210, 0, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(0, 212, 255, 0.03) 0%, transparent 40%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 0, 128, 0.02) 0%, transparent 40%),
+    linear-gradient(180deg, var(--background) 0%, var(--background-secondary) 50%, var(--background) 100%);
+}
+
+/* ============================================
+   SECTION BACKGROUNDS - Visual Variety
+   ============================================ */
+
+/* Section Light - Subtle lighter tone */
+.section-light {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(188, 210, 0, 0.02) 0%, transparent 60%),
+    linear-gradient(180deg, #0A0A14 0%, #0E0E1A 50%, #0A0A14 100%);
+}
+
+/* Section Dark - Deep with cyan accent */
+.section-dark {
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(0, 212, 255, 0.025) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 30% at 10% 80%, rgba(188, 210, 0, 0.015) 0%, transparent 40%),
+    linear-gradient(180deg, #050508 0%, #070710 50%, #050508 100%);
+}
+
+/* Section Gradient - Diagonal glow */
+.section-gradient {
+  background:
+    radial-gradient(ellipse 50% 50% at 0% 0%, rgba(188, 210, 0, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 100% 100%, rgba(0, 212, 255, 0.02) 0%, transparent 50%),
+    linear-gradient(135deg, #080810 0%, #0A0A14 50%, #060610 100%);
+}
+
+/* Section Glow - Central neon spotlight */
+.section-glow {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(188, 210, 0, 0.025) 0%, transparent 60%),
+    linear-gradient(180deg, #070710 0%, #0A0A14 30%, #0E0E1A 70%, #0A0A14 100%);
+}
+
+/* Section Minimal - Very subtle difference */
+.section-minimal {
+  background:
+    linear-gradient(180deg, #060610 0%, #0A0A14 100%);
+}
+
+/* ============================================
+   DECORATIVE PATTERNS
+   ============================================ */
+
+.chinese-pattern {
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(188, 210, 0, 0.015) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, rgba(0, 212, 255, 0.01) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-15px) rotate(2deg);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(188, 210, 0, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(188, 210, 0, 0.35);
+  }
+}
+
+@keyframes coin-spin {
+  0% {
+    transform: rotateY(0deg);
+  }
+
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+/* Optimized sparkle animation - CSS only */
+@keyframes sparkle-pulse {
+
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sparkle-pulse {
+  animation: sparkle-pulse 4s ease-in-out infinite;
+}
+
+/* Optimized coin float - CSS only */
+@keyframes coin-float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotateY(0deg);
+  }
+
+  50% {
+    transform: translateY(-12px) rotateY(180deg);
+  }
+}
+
+.coin-float {
+  animation: coin-float 5s ease-in-out infinite;
+}
+
+/* Optimized symbol pulse - CSS only */
+@keyframes symbol-pulse {
+
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.symbol-pulse {
+  animation: symbol-pulse 4s ease-in-out infinite;
+}
+
+/* Optimized character float - CSS only */
+@keyframes character-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.character-float {
+  animation: character-float 5s ease-in-out infinite;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.glass-dark {
+  background: rgba(10, 10, 20, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.border-neon-subtle {
+  border: 1px solid var(--border-subtle);
+}
+
+.border-neon-default {
+  border: 1px solid var(--border-default);
+}
+
+.glow-neon {
+  box-shadow: var(--glow-primary);
+}
+
+.shadow-neon {
+  box-shadow: var(--shadow-primary);
+}
+
+/* Primary color for direct use */
+.text-primary {
+  color: #bcd200;
+}
+
+.bg-primary {
+  background-color: #bcd200;
+}
+
+.border-primary {
+  border-color: #bcd200;
 }
