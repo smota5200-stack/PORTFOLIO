@@ -7,20 +7,27 @@ export const portfolioData = {
     subtitle: "Motion Graphics & Key Visuals para Cassinos",
     email: "contato@felipemota.com",
     location: "Brasil",
+    whatsapp: "5511999999999",
+    photo: "",
     bio: `Sou um designer especializado no universo iGaming, criando experiências visuais impactantes para slots, cassinos online e jogos de azar. Minha paixão é transformar conceitos em visuais que capturam a essência de jogos como Fortune Tiger, Fortune Ox e Fortune Rabbit.
 
 Com anos de experiência em motion graphics e key visuals, desenvolvo projetos que combinam criatividade, técnica e o brilho característico do mundo dos cassinos.`,
   },
 
+  stats: [
+    { id: 1, label: "Anos de Experiência", value: "5+", icon: "⏱" },
+    { id: 2, label: "Projetos Entregues", value: "100+", icon: "◆" },
+    { id: 3, label: "Clientes Satisfeitos", value: "50+", icon: "★" },
+    { id: 4, label: "Prêmios", value: "10+", icon: "🏆" },
+  ],
+
   skills: [
-    { name: "Motion Graphics", level: 95, icon: "🎬" },
-    { name: "Key Visuals", level: 90, icon: "🎨" },
-    { name: "After Effects", level: 95, icon: "✨" },
-    { name: "Photoshop", level: 90, icon: "🖼️" },
-    { name: "Illustrator", level: 85, icon: "✏️" },
-    { name: "Figma", level: 80, icon: "📐" },
-    { name: "3D Design", level: 75, icon: "🎲" },
-    { name: "UI/UX Games", level: 85, icon: "🎮" },
+    { name: "Photoshop", level: 96, icon: "🖼️", showLevel: true, description: "Direção de arte, key visuals e composição avançada. Uso avançado para criação de key visuals, manipulação, tratamento, composição, efeitos de luz, glow, texturas e finalização premium." },
+    { name: "After Effects", level: 95, icon: "✨", showLevel: true, description: "Motion graphics e animações para iGaming. Criação de trailers, vinhetas, efeitos especiais e composições visuais dinâmicas." },
+    { name: "Figma", level: 92, icon: "📐", showLevel: true, description: "Design de interfaces e prototipagem. Criação de layouts, componentes reutilizáveis e sistemas de design." },
+    { name: "Illustrator", level: 85, icon: "✏️", showLevel: true, description: "Ilustração vetorial e criação de ícones. Design de elementos gráficos, logotipos e assets para jogos." },
+    { name: "3D Design", level: 75, icon: "🎲", showLevel: true, description: "Modelagem e renderização 3D. Criação de elementos tridimensionais para composições e animações." },
+    { name: "UI/UX Games", level: 85, icon: "🎮", showLevel: true, description: "Design de interfaces para jogos. Criação de HUDs, menus e experiência do usuário em jogos." },
   ],
 
   experiences: [

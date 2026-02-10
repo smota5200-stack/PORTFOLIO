@@ -1,18 +1,52 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
+import { useState, useEffect } from "react";
 import { Section } from "./ui/Section";
 import { portfolioData } from "@/lib/data";
 
 export function About() {
-    const { personal } = portfolioData;
+    const [personal, setPersonal] = useState<typeof portfolioData.personal | null>(null);
+    const [stats, setStats] = useState<typeof portfolioData.stats>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const stats = [
-        { label: "Anos de Experiência", value: "5+", icon: "⏱" },
-        { label: "Projetos Entregues", value: "100+", icon: "◆" },
-        { label: "Clientes Satisfeitos", value: "50+", icon: "★" },
-        { label: "Prêmios", value: "10+", icon: "🏆" },
-    ];
+    // Load data from Firebase API
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const response = await fetch("/api/data", {
+                    cache: "no-store"
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.personal) {
+                        setPersonal(data.personal);
+                    } else {
+                        setPersonal(portfolioData.personal);
+                    }
+                    if (data.stats && data.stats.length > 0) {
+                        setStats(data.stats);
+                    } else {
+                        setStats(portfolioData.stats);
+                    }
+                } else {
+                    setPersonal(portfolioData.personal);
+                    setStats(portfolioData.stats);
+                }
+            } catch {
+                setPersonal(portfolioData.personal);
+                setStats(portfolioData.stats);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadData();
+    }, []);
+
+    // Use loaded data or default
+    const displayPersonal = personal || portfolioData.personal;
+    const displayStats = stats.length > 0 ? stats : portfolioData.stats;
 
     return (
         <Section
@@ -21,6 +55,58 @@ export function About() {
             subtitle="Conheça o designer por trás dos visuais"
             variant="glow"
         >
+            {/* Fortune Tiger - Top Right */}
+            <div
+                className="absolute top-16 right-4 md:right-12 w-20 h-20 md:w-28 md:h-28 lg:w-36 lg:h-36 pointer-events-none z-10 character-float"
+                style={{ animationDelay: "0.2s", willChange: "transform" }}
+            >
+                <div className="relative w-full h-full">
+                    <div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                            background: "radial-gradient(circle, rgba(188,210,0,0.3) 0%, transparent 70%)",
+                            filter: "blur(15px)",
+                            transform: "scale(1.2)",
+                        }}
+                    />
+                    <Image
+                        src="/images/fortune-tiger.png"
+                        alt="Fortune Tiger"
+                        fill
+                        className="object-contain"
+                        style={{
+                            filter: "drop-shadow(0 0 15px rgba(188,210,0,0.2))",
+                        }}
+                    />
+                </div>
+            </div>
+
+            {/* Fortune Rabbit - Bottom Left */}
+            <div
+                className="absolute bottom-16 -left-10 md:-left-16 lg:-left-24 w-20 h-20 md:w-28 md:h-28 lg:w-36 lg:h-36 pointer-events-none z-10 character-float"
+                style={{ animationDelay: "0.7s", willChange: "transform" }}
+            >
+                <div className="relative w-full h-full">
+                    <div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                            background: "radial-gradient(circle, rgba(188,210,0,0.3) 0%, transparent 70%)",
+                            filter: "blur(15px)",
+                            transform: "scale(1.2)",
+                        }}
+                    />
+                    <Image
+                        src="/images/fortune-rabbit.png"
+                        alt="Fortune Rabbit"
+                        fill
+                        className="object-contain"
+                        style={{
+                            filter: "drop-shadow(0 0 15px rgba(188,210,0,0.2))",
+                        }}
+                    />
+                </div>
+            </div>
+
             <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
                 {/* Avatar Section - Enhanced */}
                 <motion.div
@@ -70,41 +156,53 @@ export function About() {
                             {/* Inner pattern */}
                             <div className="absolute inset-0 chinese-pattern opacity-30" />
 
-                            {/* Center symbol */}
+                            {/* Photo or fallback placeholder */}
                             <div className="w-full h-full flex items-center justify-center relative">
-                                <motion.div
-                                    className="text-8xl md:text-9xl"
-                                    style={{
-                                        color: "#bcd200",
-                                        opacity: 0.4,
-                                        textShadow: "0 0 50px rgba(188,210,0,0.5)",
-                                    }}
-                                    animate={{
-                                        scale: [1, 1.05, 1],
-                                        rotate: [0, 5, 0, -5, 0],
-                                    }}
-                                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                                >
-                                    ◆
-                                </motion.div>
+                                {(displayPersonal as typeof displayPersonal & { photo?: string }).photo ? (
+                                    <Image
+                                        src={(displayPersonal as typeof displayPersonal & { photo?: string }).photo!}
+                                        alt={displayPersonal.name}
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 256px, 320px"
+                                    />
+                                ) : (
+                                    <>
+                                        <motion.div
+                                            className="text-8xl md:text-9xl"
+                                            style={{
+                                                color: "#bcd200",
+                                                opacity: 0.4,
+                                                textShadow: "0 0 50px rgba(188,210,0,0.5)",
+                                            }}
+                                            animate={{
+                                                scale: [1, 1.05, 1],
+                                                rotate: [0, 5, 0, -5, 0],
+                                            }}
+                                            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                                        >
+                                            ◆
+                                        </motion.div>
 
-                                {/* Floating mini symbols */}
-                                <motion.span
-                                    className="absolute top-8 right-8 text-xl"
-                                    style={{ color: "#bcd200", opacity: 0.3 }}
-                                    animate={{ y: [0, -5, 0], opacity: [0.3, 0.5, 0.3] }}
-                                    transition={{ duration: 3, repeat: Infinity }}
-                                >
-                                    ♠
-                                </motion.span>
-                                <motion.span
-                                    className="absolute bottom-8 left-8 text-xl"
-                                    style={{ color: "#00D4FF", opacity: 0.3 }}
-                                    animate={{ y: [0, 5, 0], opacity: [0.3, 0.5, 0.3] }}
-                                    transition={{ duration: 3.5, repeat: Infinity, delay: 0.5 }}
-                                >
-                                    ♦
-                                </motion.span>
+                                        {/* Floating mini symbols */}
+                                        <motion.span
+                                            className="absolute top-8 right-8 text-xl"
+                                            style={{ color: "#bcd200", opacity: 0.3 }}
+                                            animate={{ y: [0, -5, 0], opacity: [0.3, 0.5, 0.3] }}
+                                            transition={{ duration: 3, repeat: Infinity }}
+                                        >
+                                            ♠
+                                        </motion.span>
+                                        <motion.span
+                                            className="absolute bottom-8 left-8 text-xl"
+                                            style={{ color: "#00D4FF", opacity: 0.3 }}
+                                            animate={{ y: [0, 5, 0], opacity: [0.3, 0.5, 0.3] }}
+                                            transition={{ duration: 3.5, repeat: Infinity, delay: 0.5 }}
+                                        >
+                                            ♦
+                                        </motion.span>
+                                    </>
+                                )}
                             </div>
 
                             {/* Shimmer overlay */}
@@ -170,12 +268,12 @@ export function About() {
                         >
                             ◆
                         </motion.span>
-                        <span className="text-[#bcd200] font-semibold">{personal.name}</span>
+                        <span className="text-[#bcd200] font-semibold">{displayPersonal.name}</span>
                     </motion.div>
 
                     {/* Bio paragraphs */}
                     <div className="space-y-4">
-                        {personal.bio.split('\n\n').map((paragraph, i) => (
+                        {displayPersonal.bio.split('\n\n').map((paragraph, i) => (
                             <motion.p
                                 key={i}
                                 className="text-[#8A8A9A] leading-relaxed text-base md:text-lg"
@@ -203,7 +301,7 @@ export function About() {
                         >
                             ◎
                         </span>
-                        <span className="font-medium">{personal.location}</span>
+                        <span className="font-medium">{displayPersonal.location}</span>
                     </motion.div>
                 </motion.div>
             </div>
@@ -216,7 +314,7 @@ export function About() {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-20"
             >
-                {stats.map((stat, index) => (
+                {displayStats.map((stat, index) => (
                     <motion.div
                         key={stat.label}
                         initial={{ opacity: 0, y: 20 }}

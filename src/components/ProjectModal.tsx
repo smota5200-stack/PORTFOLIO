@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import { useEffect, useCallback } from "react";
 
 interface ProjectModalProps {
@@ -38,8 +37,8 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
 
     if (!project) return null;
 
-    // Combine cover image with gallery images
-    const allImages = [project.image, ...(project.images || [])].filter(Boolean);
+    // Only show gallery images, not the cover
+    const allImages = (project.images || []).filter(Boolean);
 
     return (
         <AnimatePresence>
@@ -138,32 +137,30 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
                             </motion.div>
                         </div>
 
-                        {/* Image Grid - Behance Style */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Image Grid - 3 Columns, Respects Original Dimensions */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {allImages.map((img, index) => (
                                 <motion.div
                                     key={index}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3 + index * 0.1 }}
-                                    className={`relative rounded-xl overflow-hidden ${index === 0 ? "md:col-span-2" : ""
-                                        }`}
+                                    className="relative rounded-xl overflow-hidden"
                                     style={{
-                                        aspectRatio: index === 0 ? "16/9" : "4/3",
                                         background: "rgba(6,6,16,0.8)",
                                         border: "1px solid rgba(188,210,0,0.1)",
                                     }}
                                 >
                                     {img ? (
-                                        <Image
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
                                             src={img}
                                             alt={`${project.title} - Imagem ${index + 1}`}
-                                            fill
-                                            className="object-cover"
-                                            sizes="(max-width: 768px) 100vw, 50vw"
+                                            className="w-full h-auto"
+                                            style={{ display: "block" }}
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
+                                        <div className="w-full aspect-video flex items-center justify-center">
                                             <span className="text-4xl text-[#bcd200] opacity-30">◆</span>
                                         </div>
                                     )}

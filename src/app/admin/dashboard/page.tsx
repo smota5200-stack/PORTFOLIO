@@ -1,18 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { portfolioData as defaultData } from "@/lib/data";
 import { ImageUploader } from "@/components/admin/ImageUploader";
+import { CoverImageUploader } from "@/components/admin/CoverImageUploader";
+import { ImageCropper } from "@/components/admin/ImageCropper";
 
-type TabType = "personal" | "skills" | "experiences" | "projects" | "social";
+type TabType = "personal" | "stats" | "skills" | "experiences" | "projects" | "social";
 
 export default function AdminDashboard() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabType>("personal");
     const [data, setData] = useState(defaultData);
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [saveMessage, setSaveMessage] = useState("");
 
     // Check authentication
@@ -23,31 +26,69 @@ export default function AdminDashboard() {
         }
     }, [router]);
 
-    // Load data from localStorage
+    // Load data from Firebase API
     useEffect(() => {
-        const savedData = localStorage.getItem("portfolio_data");
-        if (savedData) {
+        const loadData = async () => {
             try {
-                setData(JSON.parse(savedData));
-            } catch {
-                console.error("Failed to parse saved data");
+                setIsLoading(true);
+                const response = await fetch("/api/data", { cache: "no-store" });
+                if (response.ok) {
+                    const result = await response.json();
+                    // Merge with defaults - use Firebase data if exists, otherwise use defaults
+                    setData({
+                        ...defaultData,
+                        ...result,
+                        // Ensure arrays use Firebase data if not empty, otherwise fallback to defaults
+                        stats: result.stats?.length > 0 ? result.stats : defaultData.stats,
+                        skills: result.skills?.length > 0 ? result.skills : defaultData.skills,
+                        experiences: result.experiences?.length > 0 ? result.experiences : defaultData.experiences,
+                        projects: result.projects?.length > 0 ? result.projects : defaultData.projects,
+                        social: result.social?.length > 0 ? result.social : defaultData.social,
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to load data:", error);
+            } finally {
+                setIsLoading(false);
             }
-        }
+        };
+        loadData();
     }, []);
 
     const handleSave = async () => {
         setIsSaving(true);
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        localStorage.setItem("portfolio_data", JSON.stringify(data));
-        setIsSaving(false);
-        setSaveMessage("Dados salvos com sucesso!");
-        setTimeout(() => setSaveMessage(""), 3000);
+        setSaveMessage("Salvando no Firebase...");
+
+        try {
+            const response = await fetch("/api/data", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+                setSaveMessage("✅ Dados salvos no Firebase!");
+            } else {
+                setSaveMessage("❌ Erro ao salvar dados");
+            }
+        } catch (error) {
+            console.error("Error saving:", error);
+            setSaveMessage("❌ Erro de conexão");
+        } finally {
+            setIsSaving(false);
+            setTimeout(() => setSaveMessage(""), 3000);
+        }
     };
 
-    const handleReset = () => {
+    const handleReset = async () => {
         if (confirm("Tem certeza que deseja resetar todos os dados para o padrão?")) {
-            localStorage.removeItem("portfolio_data");
             setData(defaultData);
+            // Also save the default data to Firebase
+            await fetch("/api/data", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(defaultData),
+            });
             setSaveMessage("Dados resetados para o padrão!");
             setTimeout(() => setSaveMessage(""), 3000);
         }
@@ -60,6 +101,7 @@ export default function AdminDashboard() {
 
     const tabs: { id: TabType; label: string; icon: string }[] = [
         { id: "personal", label: "Pessoal", icon: "👤" },
+        { id: "stats", label: "Estatísticas", icon: "📊" },
         { id: "skills", label: "Skills", icon: "⚡" },
         { id: "experiences", label: "Experiência", icon: "💼" },
         { id: "projects", label: "Projetos", icon: "🎨" },
@@ -166,6 +208,9 @@ export default function AdminDashboard() {
                     {activeTab === "personal" && (
                         <PersonalTab data={data} setData={setData} />
                     )}
+                    {activeTab === "stats" && (
+                        <StatsTab data={data} setData={setData} />
+                    )}
                     {activeTab === "skills" && (
                         <SkillsTab data={data} setData={setData} />
                     )}
@@ -223,6 +268,11 @@ interface TabProps {
 }
 
 function PersonalTab({ data, setData }: TabProps) {
+    const [tempImage, setTempImage] = useState<string | null>(null);
+    const [showCropper, setShowCropper] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [photoError, setPhotoError] = useState<string | null>(null);
+
     const handleChange = (field: string, value: string) => {
         setData((prev) => ({
             ...prev,
@@ -230,48 +280,254 @@ function PersonalTab({ data, setData }: TabProps) {
         }));
     };
 
+    const currentPhoto = (data.personal as typeof data.personal & { photo?: string }).photo || "";
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            setPhotoError("Por favor, selecione uma imagem");
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            setPhotoError("Imagem muito grande. Máximo 10MB");
+            return;
+        }
+
+        setPhotoError(null);
+        const localUrl = URL.createObjectURL(file);
+        setTempImage(localUrl);
+        setShowCropper(true);
+
+        if (inputRef.current) inputRef.current.value = "";
+    };
+
+    const handleCropComplete = (croppedUrl: string) => {
+        handleChange("photo", croppedUrl);
+        setShowCropper(false);
+        if (tempImage) {
+            URL.revokeObjectURL(tempImage);
+            setTempImage(null);
+        }
+    };
+
+    const handleCropCancel = () => {
+        setShowCropper(false);
+        if (tempImage) {
+            URL.revokeObjectURL(tempImage);
+            setTempImage(null);
+        }
+    };
+
+    return (
+        <>
+            <div className="space-y-6">
+                <h2 className="text-xl font-bold text-white mb-6">Informações Pessoais</h2>
+
+                {/* Photo Upload with Crop */}
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <label className="block text-sm text-[#8A8A9A]">Foto de Perfil</label>
+                        <span className="text-xs text-[#bcd200]/60">Recomendado: 400x400px</span>
+                    </div>
+
+                    <div
+                        onClick={() => inputRef.current?.click()}
+                        className="relative border-2 border-dashed rounded-xl cursor-pointer transition-all hover:border-[#bcd200]/50 group overflow-hidden"
+                        style={{
+                            borderColor: photoError ? "rgba(239,68,68,0.5)" : "rgba(188,210,0,0.2)",
+                            background: "rgba(6,6,16,0.5)",
+                            maxWidth: "240px",
+                        }}
+                    >
+                        <input
+                            ref={inputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                        />
+
+                        {currentPhoto ? (
+                            <div className="relative aspect-square">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={currentPhoto}
+                                    alt="Foto de perfil"
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span className="px-3 py-1.5 bg-[#bcd200] text-[#0A0A14] rounded-lg text-sm font-medium">
+                                        ✂️ Alterar e Recortar
+                                    </span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-10 text-center aspect-square">
+                                <span className="text-4xl mb-3">📷</span>
+                                <span className="text-sm text-[#8A8A9A]">
+                                    Clique para adicionar foto
+                                </span>
+                                <span className="text-xs text-[#8A8A9A]/60 mt-1">
+                                    Você poderá recortar e ajustar
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    {photoError && (
+                        <p className="text-red-400 text-xs">{photoError}</p>
+                    )}
+                </div>
+
+                <InputField
+                    label="Nome"
+                    value={data.personal.name}
+                    onChange={(v) => handleChange("name", v)}
+                />
+                <InputField
+                    label="Título"
+                    value={data.personal.title}
+                    onChange={(v) => handleChange("title", v)}
+                />
+                <InputField
+                    label="Subtítulo"
+                    value={data.personal.subtitle}
+                    onChange={(v) => handleChange("subtitle", v)}
+                />
+                <InputField
+                    label="Email"
+                    type="email"
+                    value={data.personal.email}
+                    onChange={(v) => handleChange("email", v)}
+                />
+                <InputField
+                    label="Localização"
+                    value={data.personal.location}
+                    onChange={(v) => handleChange("location", v)}
+                />
+                <InputField
+                    label="WhatsApp (ex: 5511999999999)"
+                    value={(data.personal as typeof data.personal & { whatsapp?: string }).whatsapp || ""}
+                    onChange={(v) => handleChange("whatsapp", v)}
+                />
+                <TextareaField
+                    label="Bio"
+                    value={data.personal.bio}
+                    onChange={(v) => handleChange("bio", v)}
+                    rows={6}
+                />
+            </div>
+
+            {/* Cropper Modal - 1:1 for profile photo */}
+            {showCropper && tempImage && (
+                <ImageCropper
+                    image={tempImage}
+                    onCropComplete={handleCropComplete}
+                    onCancel={handleCropCancel}
+                    aspectRatio={1}
+                />
+            )}
+        </>
+    );
+}
+
+function StatsTab({ data, setData }: TabProps) {
+    const handleStatChange = (index: number, field: string, value: string) => {
+        setData((prev) => {
+            const newStats = [...(prev.stats || [])];
+            newStats[index] = { ...newStats[index], [field]: value };
+            return { ...prev, stats: newStats };
+        });
+    };
+
+    const addStat = () => {
+        const newId = Math.max(...(data.stats || []).map((s) => s.id), 0) + 1;
+        setData((prev) => ({
+            ...prev,
+            stats: [...(prev.stats || []), { id: newId, label: "Nova Estatística", value: "0", icon: "📈" }],
+        }));
+    };
+
+    const removeStat = (index: number) => {
+        setData((prev) => ({
+            ...prev,
+            stats: (prev.stats || []).filter((_, i) => i !== index),
+        }));
+    };
+
     return (
         <div className="space-y-6">
-            <h2 className="text-xl font-bold text-white mb-6">Informações Pessoais</h2>
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white">Estatísticas</h2>
+                <motion.button
+                    onClick={addStat}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                    style={{
+                        background: "rgba(188,210,0,0.1)",
+                        color: "#bcd200",
+                        border: "1px solid rgba(188,210,0,0.3)",
+                    }}
+                >
+                    + Adicionar Estatística
+                </motion.button>
+            </div>
 
-            <InputField
-                label="Nome"
-                value={data.personal.name}
-                onChange={(v) => handleChange("name", v)}
-            />
-            <InputField
-                label="Título"
-                value={data.personal.title}
-                onChange={(v) => handleChange("title", v)}
-            />
-            <InputField
-                label="Subtítulo"
-                value={data.personal.subtitle}
-                onChange={(v) => handleChange("subtitle", v)}
-            />
-            <InputField
-                label="Email"
-                type="email"
-                value={data.personal.email}
-                onChange={(v) => handleChange("email", v)}
-            />
-            <InputField
-                label="Localização"
-                value={data.personal.location}
-                onChange={(v) => handleChange("location", v)}
-            />
-            <TextareaField
-                label="Bio"
-                value={data.personal.bio}
-                onChange={(v) => handleChange("bio", v)}
-                rows={6}
-            />
+            <p className="text-[#8A8A9A] text-sm mb-4">
+                Configure as estatísticas que aparecem na seção &quot;Sobre&quot; (ex: Anos de Experiência, Projetos Entregues).
+            </p>
+
+            <div className="space-y-4">
+                {(data.stats || []).map((stat, index) => (
+                    <div
+                        key={stat.id || index}
+                        className="flex items-center gap-4 p-4 rounded-xl"
+                        style={{
+                            background: "rgba(6,6,16,0.5)",
+                            border: "1px solid rgba(188,210,0,0.1)",
+                        }}
+                    >
+                        <input
+                            type="text"
+                            value={stat.icon}
+                            onChange={(e) => handleStatChange(index, "icon", e.target.value)}
+                            className="w-12 text-center text-xl bg-transparent outline-none"
+                            placeholder="📊"
+                        />
+                        <input
+                            type="text"
+                            value={stat.value}
+                            onChange={(e) => handleStatChange(index, "value", e.target.value)}
+                            className="w-24 px-3 py-2 rounded-lg text-[#bcd200] text-center font-bold bg-transparent outline-none"
+                            style={{ border: "1px solid rgba(188,210,0,0.15)" }}
+                            placeholder="100+"
+                        />
+                        <input
+                            type="text"
+                            value={stat.label}
+                            onChange={(e) => handleStatChange(index, "label", e.target.value)}
+                            className="flex-1 px-3 py-2 rounded-lg text-white bg-transparent outline-none"
+                            style={{ border: "1px solid rgba(188,210,0,0.15)" }}
+                            placeholder="Nome da estatística"
+                        />
+                        <button
+                            onClick={() => removeStat(index)}
+                            className="p-2 text-[#FF0080] hover:bg-[#FF0080]/10 rounded-lg transition-colors cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
 
 function SkillsTab({ data, setData }: TabProps) {
-    const handleSkillChange = (index: number, field: string, value: string | number) => {
+    const handleSkillChange = (index: number, field: string, value: string | number | boolean) => {
         setData((prev) => {
             const newSkills = [...prev.skills];
             newSkills[index] = { ...newSkills[index], [field]: value };
@@ -282,7 +538,7 @@ function SkillsTab({ data, setData }: TabProps) {
     const addSkill = () => {
         setData((prev) => ({
             ...prev,
-            skills: [...prev.skills, { name: "Nova Skill", level: 50, icon: "⭐" }],
+            skills: [...prev.skills, { name: "Nova Skill", level: 50, icon: "⭐", showLevel: true, description: "" }],
         }));
     };
 
@@ -316,41 +572,82 @@ function SkillsTab({ data, setData }: TabProps) {
                 {data.skills.map((skill, index) => (
                     <div
                         key={index}
-                        className="flex items-center gap-4 p-4 rounded-xl"
+                        className="p-5 rounded-xl space-y-4"
                         style={{
                             background: "rgba(6,6,16,0.5)",
                             border: "1px solid rgba(188,210,0,0.1)",
                         }}
                     >
-                        <input
-                            type="text"
-                            value={skill.icon}
-                            onChange={(e) => handleSkillChange(index, "icon", e.target.value)}
-                            className="w-12 text-center text-xl bg-transparent outline-none"
-                        />
-                        <input
-                            type="text"
-                            value={skill.name}
-                            onChange={(e) => handleSkillChange(index, "name", e.target.value)}
-                            className="flex-1 px-3 py-2 rounded-lg text-white bg-transparent outline-none"
-                            style={{ border: "1px solid rgba(188,210,0,0.15)" }}
-                        />
-                        <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={skill.level}
-                            onChange={(e) => handleSkillChange(index, "level", parseInt(e.target.value) || 0)}
-                            className="w-20 px-3 py-2 rounded-lg text-white text-center bg-transparent outline-none"
-                            style={{ border: "1px solid rgba(188,210,0,0.15)" }}
-                        />
-                        <span className="text-[#8A8A9A] text-sm">%</span>
-                        <button
-                            onClick={() => removeSkill(index)}
-                            className="p-2 text-[#FF0080] hover:bg-[#FF0080]/10 rounded-lg transition-colors cursor-pointer"
-                        >
-                            ✕
-                        </button>
+                        {/* Header row */}
+                        <div className="flex items-center gap-4">
+                            <input
+                                type="text"
+                                value={skill.icon}
+                                onChange={(e) => handleSkillChange(index, "icon", e.target.value)}
+                                className="w-12 text-center text-xl bg-transparent outline-none"
+                            />
+                            <input
+                                type="text"
+                                value={skill.name}
+                                onChange={(e) => handleSkillChange(index, "name", e.target.value)}
+                                className="flex-1 px-3 py-2 rounded-lg text-white bg-transparent outline-none"
+                                style={{ border: "1px solid rgba(188,210,0,0.15)" }}
+                                placeholder="Nome da skill"
+                            />
+                            <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={skill.level}
+                                onChange={(e) => handleSkillChange(index, "level", parseInt(e.target.value) || 0)}
+                                className="w-20 px-3 py-2 rounded-lg text-white text-center bg-transparent outline-none"
+                                style={{ border: "1px solid rgba(188,210,0,0.15)" }}
+                            />
+                            <span className="text-[#8A8A9A] text-sm">%</span>
+                            <button
+                                onClick={() => removeSkill(index)}
+                                className="p-2 text-[#FF0080] hover:bg-[#FF0080]/10 rounded-lg transition-colors cursor-pointer"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Description field */}
+                        <div>
+                            <label className="text-[#6A6A7A] text-xs mb-1 block">Descrição</label>
+                            <textarea
+                                value={(skill as typeof skill & { description?: string }).description || ""}
+                                onChange={(e) => handleSkillChange(index, "description", e.target.value)}
+                                rows={2}
+                                className="w-full px-3 py-2 rounded-lg text-white text-sm bg-transparent outline-none resize-none"
+                                style={{ border: "1px solid rgba(188,210,0,0.1)" }}
+                                placeholder="Descreva sua experiência com esta skill..."
+                            />
+                        </div>
+
+                        {/* Show Level Toggle */}
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => handleSkillChange(index, "showLevel", !(skill as typeof skill & { showLevel?: boolean }).showLevel)}
+                                className="relative w-12 h-6 rounded-full transition-colors cursor-pointer"
+                                style={{
+                                    background: (skill as typeof skill & { showLevel?: boolean }).showLevel !== false
+                                        ? "linear-gradient(135deg, #bcd200 0%, #788D00 100%)"
+                                        : "rgba(60,60,80,0.5)",
+                                }}
+                            >
+                                <div
+                                    className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"
+                                    style={{
+                                        left: (skill as typeof skill & { showLevel?: boolean }).showLevel !== false ? "calc(100% - 20px)" : "4px",
+                                    }}
+                                />
+                            </button>
+                            <span className="text-[#8A8A9A] text-sm">
+                                {(skill as typeof skill & { showLevel?: boolean }).showLevel !== false ? "Mostrar barra de %" : "Ocultar barra de %"}
+                            </span>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -359,20 +656,23 @@ function SkillsTab({ data, setData }: TabProps) {
 }
 
 function ExperiencesTab({ data, setData }: TabProps) {
+    const experiences = data.experiences || [];
+
     const handleExpChange = (index: number, field: string, value: string) => {
         setData((prev) => {
-            const newExps = [...prev.experiences];
+            const newExps = [...(prev.experiences || [])];
             newExps[index] = { ...newExps[index], [field]: value };
             return { ...prev, experiences: newExps };
         });
     };
 
     const addExperience = () => {
-        const newId = Math.max(...data.experiences.map((e) => e.id), 0) + 1;
+        const ids = experiences.map((e) => e.id);
+        const newId = ids.length > 0 ? Math.max(...ids) + 1 : 1;
         setData((prev) => ({
             ...prev,
             experiences: [
-                ...prev.experiences,
+                ...(prev.experiences || []),
                 { id: newId, role: "Nova Posição", company: "Empresa", period: "2024 - Presente", description: "" },
             ],
         }));
@@ -381,7 +681,7 @@ function ExperiencesTab({ data, setData }: TabProps) {
     const removeExperience = (index: number) => {
         setData((prev) => ({
             ...prev,
-            experiences: prev.experiences.filter((_, i) => i !== index),
+            experiences: (prev.experiences || []).filter((_, i) => i !== index),
         }));
     };
 
@@ -405,7 +705,7 @@ function ExperiencesTab({ data, setData }: TabProps) {
             </div>
 
             <div className="space-y-6">
-                {data.experiences.map((exp, index) => (
+                {experiences.map((exp, index) => (
                     <div
                         key={exp.id}
                         className="p-6 rounded-xl space-y-4"
@@ -497,6 +797,15 @@ function ProjectsTab({ data, setData }: TabProps) {
         });
     };
 
+    const addMultipleImages = (projectIndex: number, urls: string[]) => {
+        setData((prev) => {
+            const newProjects = [...prev.projects];
+            const images = (newProjects[projectIndex] as typeof newProjects[0] & { images?: string[] }).images || [];
+            newProjects[projectIndex] = { ...newProjects[projectIndex], images: [...images, ...urls] };
+            return { ...prev, projects: newProjects };
+        });
+    };
+
     const removeImage = (projectIndex: number, imageIndex: number) => {
         setData((prev) => {
             const newProjects = [...prev.projects];
@@ -574,14 +883,12 @@ function ProjectsTab({ data, setData }: TabProps) {
                                 onChange={(v) => handleProjectChange(index, "tags", v.split(",").map((t) => t.trim()))}
                             />
 
-                            {/* Cover Image Upload */}
-                            <div className="space-y-2">
-                                <ImageUploader
-                                    label="Imagem de Capa"
-                                    currentImage={project.image}
-                                    onUpload={(url) => handleProjectChange(index, "image", url)}
-                                />
-                            </div>
+                            {/* Cover Image Upload with Crop */}
+                            <CoverImageUploader
+                                currentImage={project.image}
+                                onImageChange={(url) => handleProjectChange(index, "image", url)}
+                                recommendedSize="1200 x 800px"
+                            />
 
                             {/* Gallery Images */}
                             <div className="space-y-3">
@@ -609,11 +916,13 @@ function ProjectsTab({ data, setData }: TabProps) {
                                     ))}
                                 </div>
 
-                                {/* Upload New Image */}
+                                {/* Upload New Images */}
                                 <div className="mt-4">
                                     <ImageUploader
-                                        label="Adicionar Nova Imagem"
+                                        label="Adicionar Imagens"
+                                        multiple={true}
                                         onUpload={(url) => addImage(index, url)}
+                                        onUploadMultiple={(urls) => addMultipleImages(index, urls)}
                                     />
                                 </div>
                             </div>
@@ -626,9 +935,11 @@ function ProjectsTab({ data, setData }: TabProps) {
 }
 
 function SocialTab({ data, setData }: TabProps) {
+    const social = data.social || [];
+
     const handleSocialChange = (index: number, field: string, value: string) => {
         setData((prev) => {
-            const newSocial = [...prev.social];
+            const newSocial = [...(prev.social || [])];
             newSocial[index] = { ...newSocial[index], [field]: value };
             return { ...prev, social: newSocial };
         });
@@ -637,14 +948,14 @@ function SocialTab({ data, setData }: TabProps) {
     const addSocial = () => {
         setData((prev) => ({
             ...prev,
-            social: [...prev.social, { name: "Nova Rede", url: "https://", icon: "🔗" }],
+            social: [...(prev.social || []), { name: "Nova Rede", url: "https://", icon: "🔗" }],
         }));
     };
 
     const removeSocial = (index: number) => {
         setData((prev) => ({
             ...prev,
-            social: prev.social.filter((_, i) => i !== index),
+            social: (prev.social || []).filter((_, i) => i !== index),
         }));
     };
 
@@ -668,7 +979,7 @@ function SocialTab({ data, setData }: TabProps) {
             </div>
 
             <div className="space-y-4">
-                {data.social.map((item, index) => (
+                {social.map((item, index) => (
                     <div
                         key={index}
                         className="flex items-center gap-4 p-4 rounded-xl"

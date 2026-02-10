@@ -1,12 +1,5 @@
-import { v2 as cloudinary } from "cloudinary";
 import { NextRequest, NextResponse } from "next/server";
-
-// Configure Cloudinary
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { put } from "@vercel/blob";
 
 export async function POST(request: NextRequest) {
     try {
@@ -17,27 +10,26 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
         }
 
-        // Convert file to base64
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const base64 = buffer.toString("base64");
-        const dataUri = `data:${file.type};base64,${base64}`;
+        // Generate unique filename
+        const timestamp = Date.now();
+        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const fileName = `portfolio/${timestamp}-${safeName}`;
 
-        // Upload to Cloudinary
-        const result = await cloudinary.uploader.upload(dataUri, {
-            folder: "portfolio-igaming",
-            resource_type: "auto",
+        // Upload to Vercel Blob
+        const blob = await put(fileName, file, {
+            access: "public",
         });
 
         return NextResponse.json({
             success: true,
-            url: result.secure_url,
-            public_id: result.public_id,
+            url: blob.url,
+            path: fileName,
         });
     } catch (error) {
-        console.error("Upload error:", error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("Upload error:", errorMessage);
         return NextResponse.json(
-            { error: "Failed to upload image" },
+            { error: "Failed to upload image", details: errorMessage },
             { status: 500 }
         );
     }

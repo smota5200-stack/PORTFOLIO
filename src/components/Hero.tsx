@@ -5,21 +5,34 @@ import Image from "next/image";
 import { portfolioData as defaultData } from "@/lib/data";
 import { useRef, useMemo, useState, useEffect } from "react";
 
-// Load personal data from localStorage or fallback to default
+// Load personal data from Firebase API
 function usePersonalData() {
-    const [personal, setPersonal] = useState(defaultData.personal);
+    const [personal, setPersonal] = useState<typeof defaultData.personal | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const saved = localStorage.getItem("portfolio_data");
-        if (saved) {
+        const loadData = async () => {
             try {
-                const parsed = JSON.parse(saved);
-                if (parsed.personal) setPersonal(parsed.personal);
-            } catch { /* use default */ }
-        }
+                const response = await fetch("/api/data", {
+                    cache: "no-store"
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.personal) setPersonal(data.personal);
+                    else setPersonal(defaultData.personal);
+                } else {
+                    setPersonal(defaultData.personal);
+                }
+            } catch {
+                setPersonal(defaultData.personal);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadData();
     }, []);
 
-    return personal;
+    return { personal: personal || defaultData.personal, isLoading };
 }
 
 // Optimized Floating Coins - reduced animations
@@ -61,17 +74,20 @@ function FloatingCoins() {
     );
 }
 
-// Optimized Sparkles - reduced count and using CSS animations
+
+// Optimized Sparkles - using fixed values to avoid hydration mismatch
 function Sparkles() {
-    const sparkles = useMemo(() =>
-        Array.from({ length: 8 }, (_, i) => ({
-            id: i,
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            size: Math.random() * 3 + 2,
-            delay: Math.random() * 5,
-        })), []
-    );
+    // Pre-calculated fixed values to avoid server/client mismatch
+    const sparkles = [
+        { id: 0, x: 15, y: 20, size: 3, delay: 0 },
+        { id: 1, x: 85, y: 15, size: 2.5, delay: 1 },
+        { id: 2, x: 25, y: 75, size: 4, delay: 2 },
+        { id: 3, x: 70, y: 45, size: 2, delay: 0.5 },
+        { id: 4, x: 45, y: 85, size: 3.5, delay: 1.5 },
+        { id: 5, x: 90, y: 60, size: 2.5, delay: 2.5 },
+        { id: 6, x: 10, y: 50, size: 3, delay: 3 },
+        { id: 7, x: 60, y: 30, size: 4, delay: 3.5 },
+    ];
 
     return (
         <>
@@ -99,12 +115,21 @@ function Sparkles() {
 function FloatingCharacters() {
     return (
         <>
-            {/* Fortune Tiger - Top Right */}
+            {/* Fortune Tiger - Canto Superior Direito */}
             <div
-                className="absolute top-20 right-4 md:right-12 lg:right-20 w-28 h-28 md:w-40 md:h-40 lg:w-52 lg:h-52 pointer-events-none z-20 character-float"
+                className="absolute top-16 right-8 md:right-16 w-24 h-24 md:w-36 md:h-36 lg:w-44 lg:h-44 pointer-events-none z-20 character-float"
                 style={{ animationDelay: "0s", willChange: "transform" }}
             >
                 <div className="relative w-full h-full">
+                    {/* Glow */}
+                    <div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                            background: "radial-gradient(circle, rgba(188,210,0,0.35) 0%, transparent 70%)",
+                            filter: "blur(20px)",
+                            transform: "scale(1.2)",
+                        }}
+                    />
                     <Image
                         src="/images/fortune-tiger.png"
                         alt="Fortune Tiger"
@@ -118,38 +143,28 @@ function FloatingCharacters() {
                 </div>
             </div>
 
-            {/* Fortune Ox - Bottom Left */}
+            {/* Fortune Dragon - Canto Inferior Esquerdo */}
             <div
-                className="absolute bottom-20 left-4 md:left-12 lg:left-20 w-28 h-28 md:w-40 md:h-40 lg:w-52 lg:h-52 pointer-events-none z-20 character-float"
-                style={{ animationDelay: "0.5s", willChange: "transform" }}
+                className="absolute bottom-12 left-6 md:left-12 w-28 h-28 md:w-40 md:h-40 lg:w-48 lg:h-48 pointer-events-none z-20 character-float"
+                style={{ animationDelay: "0.3s", willChange: "transform" }}
             >
                 <div className="relative w-full h-full">
+                    {/* Glow */}
+                    <div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                            background: "radial-gradient(circle, rgba(188,210,0,0.35) 0%, transparent 70%)",
+                            filter: "blur(20px)",
+                            transform: "scale(1.2)",
+                        }}
+                    />
                     <Image
-                        src="/images/fortune-ox.png"
-                        alt="Fortune Ox"
+                        src="/images/dragon-wild.png"
+                        alt="Fortune Dragon"
                         fill
                         className="object-contain"
                         style={{
                             filter: "drop-shadow(0 0 20px rgba(188,210,0,0.25)) drop-shadow(0 8px 24px rgba(0,0,0,0.4))",
-                        }}
-                        priority
-                    />
-                </div>
-            </div>
-
-            {/* Fortune Rabbit - Left Middle */}
-            <div
-                className="absolute top-1/3 left-2 md:left-6 lg:left-10 w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 pointer-events-none z-20 character-float"
-                style={{ animationDelay: "1s", willChange: "transform" }}
-            >
-                <div className="relative w-full h-full">
-                    <Image
-                        src="/images/fortune-rabbit.png"
-                        alt="Fortune Rabbit"
-                        fill
-                        className="object-contain"
-                        style={{
-                            filter: "drop-shadow(0 0 20px rgba(0,212,255,0.25)) drop-shadow(0 8px 24px rgba(0,0,0,0.4))",
                         }}
                         priority
                     />
@@ -193,7 +208,7 @@ function CasinoSymbols() {
 }
 
 export function Hero() {
-    const personal = usePersonalData();
+    const { personal, isLoading } = usePersonalData();
     const heroRef = useRef<HTMLElement>(null);
     const { scrollYProgress } = useScroll({
         target: heroRef,

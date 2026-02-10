@@ -1,22 +1,51 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Section } from "./ui/Section";
 import { portfolioData } from "@/lib/data";
 import { getSocialIcon } from "./icons/SocialIcons";
 
 export function Contact() {
-    const { personal, social } = portfolioData;
+    const [personal, setPersonal] = useState(portfolioData.personal);
+    const [social, setSocial] = useState(portfolioData.social);
     const [formData, setFormData] = useState({ name: "", email: "", message: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [focusedField, setFocusedField] = useState<string | null>(null);
 
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const response = await fetch("/api/data", { cache: "no-store" });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.personal) setPersonal(data.personal);
+                    if (data.social && data.social.length > 0) setSocial(data.social);
+                }
+            } catch (error) {
+                console.error("Failed to load contact data:", error);
+            }
+        };
+        loadData();
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+
+        // Format message for WhatsApp
+        const whatsappNumber = personal.whatsapp?.replace(/[^0-9]/g, "") || "5511999999999";
+        const message = `*Novo contato do Portfólio*\n\n*Nome:* ${formData.name}\n*Email:* ${formData.email}\n\n*Mensagem:*\n${formData.message}`;
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+
+        // Small delay for UX
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Open WhatsApp
+        window.open(whatsappUrl, "_blank");
+
         setIsSubmitting(false);
         setIsSubmitted(true);
         setFormData({ name: "", email: "", message: "" });
@@ -38,73 +67,6 @@ export function Contact() {
                     viewport={{ once: false }}
                     className="space-y-8"
                 >
-                    {/* Info Cards */}
-                    <div className="space-y-4">
-                        {/* Email */}
-                        <motion.div
-                            className="flex items-center gap-4 p-5 rounded-2xl group cursor-pointer"
-                            style={{
-                                background: "linear-gradient(135deg, rgba(14,14,26,0.9) 0%, rgba(6,6,16,0.95) 100%)",
-                                border: "1px solid rgba(188,210,0,0.1)",
-                            }}
-                            whileHover={{
-                                y: -4,
-                                borderColor: "rgba(188,210,0,0.3)",
-                                boxShadow: "0 0 30px rgba(188,210,0,0.1)",
-                            }}
-                        >
-                            <motion.div
-                                className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
-                                style={{
-                                    background: "linear-gradient(135deg, rgba(188,210,0,0.15) 0%, rgba(120,141,0,0.05) 100%)",
-                                    border: "1px solid rgba(188,210,0,0.2)",
-                                    color: "#bcd200",
-                                }}
-                                whileHover={{ boxShadow: "0 0 20px rgba(188,210,0,0.3)" }}
-                            >
-                                ✉
-                            </motion.div>
-                            <div>
-                                <span className="text-[#8A8A9A] text-sm block mb-0.5">Email</span>
-                                <span className="text-white font-semibold group-hover:text-[#bcd200] transition-colors">
-                                    {personal.email}
-                                </span>
-                            </div>
-                        </motion.div>
-
-                        {/* Location */}
-                        <motion.div
-                            className="flex items-center gap-4 p-5 rounded-2xl group cursor-pointer"
-                            style={{
-                                background: "linear-gradient(135deg, rgba(14,14,26,0.9) 0%, rgba(6,6,16,0.95) 100%)",
-                                border: "1px solid rgba(188,210,0,0.1)",
-                            }}
-                            whileHover={{
-                                y: -4,
-                                borderColor: "rgba(188,210,0,0.3)",
-                                boxShadow: "0 0 30px rgba(188,210,0,0.1)",
-                            }}
-                        >
-                            <motion.div
-                                className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
-                                style={{
-                                    background: "linear-gradient(135deg, rgba(0,212,255,0.15) 0%, rgba(0,100,130,0.05) 100%)",
-                                    border: "1px solid rgba(0,212,255,0.2)",
-                                    color: "#00D4FF",
-                                }}
-                                whileHover={{ boxShadow: "0 0 20px rgba(0,212,255,0.3)" }}
-                            >
-                                ◎
-                            </motion.div>
-                            <div>
-                                <span className="text-[#8A8A9A] text-sm block mb-0.5">Localização</span>
-                                <span className="text-white font-semibold group-hover:text-[#00D4FF] transition-colors">
-                                    {personal.location}
-                                </span>
-                            </div>
-                        </motion.div>
-                    </div>
-
                     {/* Social Links - Enhanced */}
                     <div>
                         <p className="text-[#8A8A9A] text-sm mb-4 font-medium">Redes Sociais</p>

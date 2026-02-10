@@ -1,11 +1,42 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Section } from "./ui/Section";
 import { portfolioData } from "@/lib/data";
 
 export function Experience() {
-    const { experiences } = portfolioData;
+    const [experiences, setExperiences] = useState(portfolioData.experiences);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const response = await fetch("/api/data", { cache: "no-store" });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.experiences && data.experiences.length > 0) {
+                        setExperiences(data.experiences);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load experiences:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadData();
+    }, []);
+
+    if (isLoading) {
+        return (
+            <Section id="experiencia" title="Experiência" subtitle="Minha jornada no universo iGaming" variant="gradient">
+                <div className="flex justify-center py-20">
+                    <div className="w-8 h-8 border-2 border-[#bcd200] border-t-transparent rounded-full animate-spin" />
+                </div>
+            </Section>
+        );
+    }
 
     return (
         <Section

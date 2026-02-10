@@ -4,68 +4,113 @@ import { useState, useRef } from "react";
 
 interface ImageUploaderProps {
     onUpload: (url: string) => void;
+    onUploadMultiple?: (urls: string[]) => void;
     currentImage?: string;
     label?: string;
+    multiple?: boolean;
+    recommendedSize?: string;
 }
 
-export function ImageUploader({ onUpload, currentImage, label = "Imagem" }: ImageUploaderProps) {
+export function ImageUploader({
+    onUpload,
+    onUploadMultiple,
+    currentImage,
+    label = "Imagem",
+    multiple = false,
+    recommendedSize,
+}: ImageUploaderProps) {
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [preview, setPreview] = useState<string | null>(currentImage || null);
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    const uploadSingleFile = async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append("file", file);
 
-        // Validate file type
-        if (!file.type.startsWith("image/")) {
-            setError("Por favor, selecione uma imagem");
-            return;
+        const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Falha no upload");
         }
 
-        // Validate file size (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-            setError("Imagem muito grande. Máximo 10MB");
-            return;
+        return data.url;
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        // Validate all files
+        for (const file of Array.from(files)) {
+            if (!file.type.startsWith("image/")) {
+                setError("Por favor, selecione apenas imagens");
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                setError("Imagem muito grande. Máximo 10MB por arquivo");
+                return;
+            }
         }
 
         setError(null);
         setIsUploading(true);
-
-        // Show local preview
-        const localPreview = URL.createObjectURL(file);
-        setPreview(localPreview);
+        setUploadProgress(0);
 
         try {
-            const formData = new FormData();
-            formData.append("file", file);
+            if (multiple && files.length > 1 && onUploadMultiple) {
+                // Upload multiple files
+                const urls: string[] = [];
+                const totalFiles = files.length;
 
-            const response = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
-            });
+                for (let i = 0; i < totalFiles; i++) {
+                    const url = await uploadSingleFile(files[i]);
+                    urls.push(url);
+                    setUploadProgress(Math.round(((i + 1) / totalFiles) * 100));
+                }
 
-            const data = await response.json();
+                onUploadMultiple(urls);
+            } else {
+                // Single file upload
+                const file = files[0];
+                const localPreview = URL.createObjectURL(file);
+                setPreview(localPreview);
 
-            if (!response.ok) {
-                throw new Error(data.error || "Falha no upload");
+                const url = await uploadSingleFile(file);
+                setPreview(url);
+                onUpload(url);
+
+                URL.revokeObjectURL(localPreview);
             }
-
-            setPreview(data.url);
-            onUpload(data.url);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Erro no upload");
             setPreview(currentImage || null);
         } finally {
             setIsUploading(false);
-            URL.revokeObjectURL(localPreview);
+            setUploadProgress(0);
+            // Reset input
+            if (inputRef.current) {
+                inputRef.current.value = "";
+            }
         }
     };
 
     return (
         <div className="space-y-2">
-            <label className="block text-sm text-[#8A8A9A]">{label}</label>
+            <div className="flex items-center justify-between">
+                <label className="block text-sm text-[#8A8A9A]">{label}</label>
+                {recommendedSize && (
+                    <span className="text-xs text-[#bcd200]/60">
+                        Recomendado: {recommendedSize}
+                    </span>
+                )}
+            </div>
 
             <div
                 onClick={() => inputRef.current?.click()}
@@ -79,11 +124,12 @@ export function ImageUploader({ onUpload, currentImage, label = "Imagem" }: Imag
                     ref={inputRef}
                     type="file"
                     accept="image/*"
+                    multiple={multiple}
                     onChange={handleFileChange}
                     className="hidden"
                 />
 
-                {preview ? (
+                {preview && !multiple ? (
                     <div className="relative aspect-video rounded-lg overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -103,15 +149,25 @@ export function ImageUploader({ onUpload, currentImage, label = "Imagem" }: Imag
                 ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                         {isUploading ? (
-                            <div className="w-8 h-8 border-2 border-[#bcd200] border-t-transparent rounded-full animate-spin" />
+                            <div className="space-y-3">
+                                <div className="w-8 h-8 border-2 border-[#bcd200] border-t-transparent rounded-full animate-spin mx-auto" />
+                                {multiple && uploadProgress > 0 && (
+                                    <div className="text-sm text-[#bcd200]">
+                                        Enviando... {uploadProgress}%
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <>
-                                <span className="text-3xl mb-2">📷</span>
+                                <span className="text-3xl mb-2">{multiple ? "🖼️" : "📷"}</span>
                                 <span className="text-sm text-[#8A8A9A]">
-                                    Clique para fazer upload
+                                    {multiple
+                                        ? "Clique para selecionar múltiplas imagens"
+                                        : "Clique para fazer upload"
+                                    }
                                 </span>
                                 <span className="text-xs text-[#8A8A9A]/60 mt-1">
-                                    PNG, JPG até 10MB
+                                    PNG, JPG até 10MB {multiple && "cada"}
                                 </span>
                             </>
                         )}
