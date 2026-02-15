@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
-const ADMIN_PASSWORD_HASH = "f3l1p3"; // Simple password check
+const ADMIN_PASSWORD_HASH = "!QAZxsw2"; // Simple password check
 
 export default function AdminLogin() {
     const [password, setPassword] = useState("");
