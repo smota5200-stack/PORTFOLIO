@@ -1,9 +1,8 @@
 "use client";
 
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import Image from "next/image";
 import { portfolioData as defaultData } from "@/lib/data";
-import { useRef, useMemo, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 
 // Load personal data from Firebase API
 function usePersonalData() {
@@ -35,178 +34,6 @@ function usePersonalData() {
     return { personal: personal || defaultData.personal, isLoading };
 }
 
-// Optimized Floating Coins - reduced animations
-function FloatingCoins() {
-    const coins = useMemo(() => [
-        { id: 1, size: 40, top: "15%", left: "5%", delay: 0 },
-        { id: 2, size: 32, top: "25%", right: "8%", delay: 1 },
-        { id: 3, size: 36, bottom: "20%", right: "5%", delay: 2 },
-    ], []);
-
-    return (
-        <>
-            {coins.map((coin) => (
-                <div
-                    key={coin.id}
-                    className="absolute pointer-events-none coin-float"
-                    style={{
-                        top: coin.top,
-                        bottom: coin.bottom,
-                        left: coin.left,
-                        right: coin.right,
-                        width: coin.size,
-                        height: coin.size,
-                        animationDelay: `${coin.delay}s`,
-                        willChange: "transform",
-                    }}
-                >
-                    <div
-                        className="w-full h-full rounded-full"
-                        style={{
-                            background: "linear-gradient(145deg, #EBF3AD 0%, #bcd200 30%, #788D00 70%, #bcd200 100%)",
-                            boxShadow: "0 0 15px rgba(188,210,0,0.3)",
-                            border: "2px solid rgba(188,210,0,0.5)",
-                        }}
-                    />
-                </div>
-            ))}
-        </>
-    );
-}
-
-
-// Optimized Sparkles - using fixed values to avoid hydration mismatch
-function Sparkles() {
-    // Pre-calculated fixed values to avoid server/client mismatch
-    const sparkles = [
-        { id: 0, x: 15, y: 20, size: 3, delay: 0 },
-        { id: 1, x: 85, y: 15, size: 2.5, delay: 1 },
-        { id: 2, x: 25, y: 75, size: 4, delay: 2 },
-        { id: 3, x: 70, y: 45, size: 2, delay: 0.5 },
-        { id: 4, x: 45, y: 85, size: 3.5, delay: 1.5 },
-        { id: 5, x: 90, y: 60, size: 2.5, delay: 2.5 },
-        { id: 6, x: 10, y: 50, size: 3, delay: 3 },
-        { id: 7, x: 60, y: 30, size: 4, delay: 3.5 },
-    ];
-
-    return (
-        <>
-            {sparkles.map((sparkle) => (
-                <div
-                    key={sparkle.id}
-                    className="absolute rounded-full pointer-events-none sparkle-pulse"
-                    style={{
-                        left: `${sparkle.x}%`,
-                        top: `${sparkle.y}%`,
-                        width: sparkle.size,
-                        height: sparkle.size,
-                        background: sparkle.id % 3 === 0 ? "#bcd200" : sparkle.id % 3 === 1 ? "#00D4FF" : "#FF0080",
-                        boxShadow: `0 0 ${sparkle.size * 3}px currentColor`,
-                        animationDelay: `${sparkle.delay}s`,
-                        willChange: "opacity, transform",
-                    }}
-                />
-            ))}
-        </>
-    );
-}
-
-// Fortune Characters - optimized with CSS animations
-function FloatingCharacters() {
-    return (
-        <>
-            {/* Fortune Tiger - Canto Superior Direito */}
-            <div
-                className="absolute top-16 right-8 md:right-16 w-24 h-24 md:w-36 md:h-36 lg:w-44 lg:h-44 pointer-events-none z-20 character-float"
-                style={{ animationDelay: "0s", willChange: "transform" }}
-            >
-                <div className="relative w-full h-full">
-                    {/* Glow */}
-                    <div
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                            background: "radial-gradient(circle, rgba(188,210,0,0.35) 0%, transparent 70%)",
-                            filter: "blur(20px)",
-                            transform: "scale(1.2)",
-                        }}
-                    />
-                    <Image
-                        src="/images/fortune-tiger.png"
-                        alt="Fortune Tiger"
-                        fill
-                        className="object-contain"
-                        style={{
-                            filter: "drop-shadow(0 0 20px rgba(188,210,0,0.25)) drop-shadow(0 8px 24px rgba(0,0,0,0.4))",
-                        }}
-                        priority
-                    />
-                </div>
-            </div>
-
-            {/* Fortune Dragon - Canto Inferior Esquerdo */}
-            <div
-                className="absolute bottom-12 left-6 md:left-12 w-28 h-28 md:w-40 md:h-40 lg:w-48 lg:h-48 pointer-events-none z-20 character-float"
-                style={{ animationDelay: "0.3s", willChange: "transform" }}
-            >
-                <div className="relative w-full h-full">
-                    {/* Glow */}
-                    <div
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                            background: "radial-gradient(circle, rgba(188,210,0,0.35) 0%, transparent 70%)",
-                            filter: "blur(20px)",
-                            transform: "scale(1.2)",
-                        }}
-                    />
-                    <Image
-                        src="/images/dragon-wild.png"
-                        alt="Fortune Dragon"
-                        fill
-                        className="object-contain"
-                        style={{
-                            filter: "drop-shadow(0 0 20px rgba(188,210,0,0.25)) drop-shadow(0 8px 24px rgba(0,0,0,0.4))",
-                        }}
-                        priority
-                    />
-                </div>
-            </div>
-        </>
-    );
-}
-
-// Decorative Casino Symbols - CSS animated
-function CasinoSymbols() {
-    const symbols = useMemo(() => [
-        { char: "♠", top: "12%", right: "25%", size: 24, color: "#bcd200", delay: 0 },
-        { char: "♦", top: "40%", right: "15%", size: 20, color: "#00D4FF", delay: 0.5 },
-        { char: "♣", bottom: "35%", right: "22%", size: 22, color: "#bcd200", delay: 1 },
-        { char: "♥", bottom: "15%", right: "30%", size: 18, color: "#FF0080", delay: 1.5 },
-    ], []);
-
-    return (
-        <>
-            {symbols.map((symbol, i) => (
-                <div
-                    key={i}
-                    className="absolute pointer-events-none font-bold symbol-pulse"
-                    style={{
-                        top: symbol.top,
-                        bottom: symbol.bottom,
-                        right: symbol.right,
-                        fontSize: symbol.size,
-                        color: symbol.color,
-                        textShadow: `0 0 15px ${symbol.color}`,
-                        animationDelay: `${symbol.delay}s`,
-                        willChange: "opacity, transform",
-                    }}
-                >
-                    {symbol.char}
-                </div>
-            ))}
-        </>
-    );
-}
-
 export function Hero() {
     const { personal, isLoading } = usePersonalData();
     const heroRef = useRef<HTMLElement>(null);
@@ -224,7 +51,6 @@ export function Hero() {
 
     const contentY = useTransform(smoothProgress, [0, 1], [0, 60]);
     const contentOpacity = useTransform(smoothProgress, [0, 0.5, 1], [1, 0.6, 0]);
-    const elementsOpacity = useTransform(smoothProgress, [0, 0.3], [1, 0]);
 
     return (
         <section
@@ -249,14 +75,6 @@ export function Hero() {
                     filter: "blur(60px)",
                 }}
             />
-
-            {/* Floating elements */}
-            <motion.div style={{ opacity: elementsOpacity }} className="absolute inset-0 overflow-hidden">
-                <Sparkles />
-                <FloatingCoins />
-                <FloatingCharacters />
-                <CasinoSymbols />
-            </motion.div>
 
             {/* Main content */}
             <motion.div

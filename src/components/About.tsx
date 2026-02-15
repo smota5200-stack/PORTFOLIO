@@ -55,58 +55,6 @@ export function About() {
             subtitle="Conheça o designer por trás dos visuais"
             variant="glow"
         >
-            {/* Fortune Tiger - Top Right */}
-            <div
-                className="absolute top-16 right-4 md:right-12 w-20 h-20 md:w-28 md:h-28 lg:w-36 lg:h-36 pointer-events-none z-10 character-float"
-                style={{ animationDelay: "0.2s", willChange: "transform" }}
-            >
-                <div className="relative w-full h-full">
-                    <div
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                            background: "radial-gradient(circle, rgba(188,210,0,0.3) 0%, transparent 70%)",
-                            filter: "blur(15px)",
-                            transform: "scale(1.2)",
-                        }}
-                    />
-                    <Image
-                        src="/images/fortune-tiger.png"
-                        alt="Fortune Tiger"
-                        fill
-                        className="object-contain"
-                        style={{
-                            filter: "drop-shadow(0 0 15px rgba(188,210,0,0.2))",
-                        }}
-                    />
-                </div>
-            </div>
-
-            {/* Fortune Rabbit - Bottom Left */}
-            <div
-                className="absolute bottom-16 -left-10 md:-left-16 lg:-left-24 w-20 h-20 md:w-28 md:h-28 lg:w-36 lg:h-36 pointer-events-none z-10 character-float"
-                style={{ animationDelay: "0.7s", willChange: "transform" }}
-            >
-                <div className="relative w-full h-full">
-                    <div
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                            background: "radial-gradient(circle, rgba(188,210,0,0.3) 0%, transparent 70%)",
-                            filter: "blur(15px)",
-                            transform: "scale(1.2)",
-                        }}
-                    />
-                    <Image
-                        src="/images/fortune-rabbit.png"
-                        alt="Fortune Rabbit"
-                        fill
-                        className="object-contain"
-                        style={{
-                            filter: "drop-shadow(0 0 15px rgba(188,210,0,0.2))",
-                        }}
-                    />
-                </div>
-            </div>
-
             <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
                 {/* Avatar Section - Enhanced */}
                 <motion.div
