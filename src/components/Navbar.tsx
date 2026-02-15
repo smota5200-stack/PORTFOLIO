@@ -49,36 +49,7 @@ export function Navbar() {
                 }}
             >
                 <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
-                    {/* Logo */}
-                    <motion.a
-                        href="#hero"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            scrollTo("#hero");
-                        }}
-                        whileHover={{ scale: 1.05 }}
-                        className="flex items-center gap-3"
-                    >
-                        <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center"
-                            style={{
-                                background: "linear-gradient(135deg, #D4E65B 0%, #788D00 100%)",
-                                boxShadow: "0 0 15px rgba(188,210,0,0.3)",
-                            }}
-                        >
-                            <span className="text-[#030305] font-bold text-lg">F</span>
-                        </div>
-                        <span
-                            className="text-xl font-black hidden sm:block"
-                            style={{
-                                background: "linear-gradient(135deg, #D4E65B, #bcd200)",
-                                WebkitBackgroundClip: "text",
-                                WebkitTextFillColor: "transparent",
-                            }}
-                        >
-                            FM
-                        </span>
-                    </motion.a>
+                    {/* Logo removed */}
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center gap-1">
