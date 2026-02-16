@@ -33,7 +33,7 @@ export default function AdminDashboard() {
         const loadData = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch("/api/data", { cache: "no-store" });
+                const response = await fetch(`/api/data?t=${Date.now()}`, { cache: "no-store" });
                 if (response.ok) {
                     const result = await response.json();
                     // Merge with defaults - use Firebase data if exists, otherwise use defaults
@@ -834,12 +834,12 @@ function ExperiencesTab({ data, setData }: TabProps) {
                 <div className="grid md:grid-cols-2 gap-4">
                     <InputField
                         label="Título"
-                        value={data.experienceTitle || "Experiência"}
+                        value={data.experienceTitle ?? "Experiência"}
                         onChange={(v) => setData((prev) => ({ ...prev, experienceTitle: v }))}
                     />
                     <InputField
                         label="Subtítulo"
-                        value={data.experienceSubtitle || "Minha jornada no universo iGaming"}
+                        value={data.experienceSubtitle ?? "Minha jornada no universo iGaming"}
                         onChange={(v) => setData((prev) => ({ ...prev, experienceSubtitle: v }))}
                     />
                 </div>

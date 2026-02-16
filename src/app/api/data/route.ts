@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { portfolioData as defaultData } from "@/lib/data";
 
+// Force dynamic rendering - prevent Next.js from caching GET responses
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const COLLECTION = "portfolio";
 const DOC_ID = "data";
 

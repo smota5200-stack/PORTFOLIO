@@ -14,7 +14,7 @@ export function Experience() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const response = await fetch("/api/data", { cache: "no-store" });
+                const response = await fetch(`/api/data?t=${Date.now()}`, { cache: "no-store" });
                 if (response.ok) {
                     const data = await response.json();
                     if (data.experiences && data.experiences.length > 0) {

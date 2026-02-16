@@ -22,7 +22,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const response = await fetch("/api/data", {
+                const response = await fetch(`/api/data?t=${Date.now()}`, {
                     cache: "no-store",
                 });
                 if (response.ok) {
