@@ -19,6 +19,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const [data, setData] = useState<PortfolioData>(portfolioData);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Update browser tab title dynamically from personal data
+    useEffect(() => {
+        if (!isLoading && data.personal.name) {
+            document.title = data.personal.title
+                ? `${data.personal.name} | ${data.personal.title}`
+                : data.personal.name;
+        }
+    }, [isLoading, data.personal.name, data.personal.title]);
+
     useEffect(() => {
         const loadData = async () => {
             try {
