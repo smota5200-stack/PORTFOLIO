@@ -30,6 +30,9 @@ Com anos de experiência em motion graphics e key visuals, desenvolvo projetos q
     { name: "UI/UX Games", level: 85, icon: "🎮", showLevel: true, description: "Design de interfaces para jogos. Criação de HUDs, menus e experiência do usuário em jogos." },
   ],
 
+  experienceTitle: "Experiência",
+  experienceSubtitle: "Minha jornada no universo iGaming",
+
   experiences: [
     {
       id: 1,

@@ -822,6 +822,29 @@ function ExperiencesTab({ data, setData }: TabProps) {
 
     return (
         <div className="space-y-6">
+            {/* Section Title & Subtitle */}
+            <div
+                className="p-5 rounded-xl space-y-4"
+                style={{
+                    background: "rgba(6,6,16,0.5)",
+                    border: "1px solid rgba(188,210,0,0.1)",
+                }}
+            >
+                <p className="text-[#8A8A9A] text-xs font-semibold uppercase tracking-wider">Título da Seção</p>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <InputField
+                        label="Título"
+                        value={data.experienceTitle || "Experiência"}
+                        onChange={(v) => setData((prev) => ({ ...prev, experienceTitle: v }))}
+                    />
+                    <InputField
+                        label="Subtítulo"
+                        value={data.experienceSubtitle || "Minha jornada no universo iGaming"}
+                        onChange={(v) => setData((prev) => ({ ...prev, experienceSubtitle: v }))}
+                    />
+                </div>
+            </div>
+
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-white">Experiências</h2>
                 <motion.button

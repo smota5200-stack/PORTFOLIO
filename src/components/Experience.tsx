@@ -7,6 +7,8 @@ import { portfolioData } from "@/lib/data";
 
 export function Experience() {
     const [experiences, setExperiences] = useState(portfolioData.experiences);
+    const [sectionTitle, setSectionTitle] = useState(portfolioData.experienceTitle || "Experiência");
+    const [sectionSubtitle, setSectionSubtitle] = useState(portfolioData.experienceSubtitle || "Minha jornada no universo iGaming");
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -17,6 +19,12 @@ export function Experience() {
                     const data = await response.json();
                     if (data.experiences && data.experiences.length > 0) {
                         setExperiences(data.experiences);
+                    }
+                    if (data.experienceTitle) {
+                        setSectionTitle(data.experienceTitle);
+                    }
+                    if (data.experienceSubtitle) {
+                        setSectionSubtitle(data.experienceSubtitle);
                     }
                 }
             } catch (error) {
@@ -30,7 +38,7 @@ export function Experience() {
 
     if (isLoading) {
         return (
-            <Section id="experiencia" title="Experiência" subtitle="Minha jornada no universo iGaming" variant="gradient">
+            <Section id="experiencia" title={sectionTitle} subtitle={sectionSubtitle} variant="gradient">
                 <div className="flex justify-center py-20">
                     <div className="w-8 h-8 border-2 border-[#bcd200] border-t-transparent rounded-full animate-spin" />
                 </div>
@@ -41,8 +49,8 @@ export function Experience() {
     return (
         <Section
             id="experiencia"
-            title="Experiência"
-            subtitle="Minha jornada no universo iGaming"
+            title={sectionTitle}
+            subtitle={sectionSubtitle}
             variant="gradient"
         >
             <div className="relative max-w-3xl mx-auto">
