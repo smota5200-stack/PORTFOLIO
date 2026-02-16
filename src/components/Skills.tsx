@@ -124,7 +124,7 @@ export function Skills() {
                                     }}
                                 >
                                     <span className="text-2xl md:text-3xl">
-                                        {getSkillIcon(skill.name)}
+                                        {getSkillIcon(skill.icon) || getSkillIcon(skill.name)}
                                     </span>
 
                                     {/* Icon inner glow */}

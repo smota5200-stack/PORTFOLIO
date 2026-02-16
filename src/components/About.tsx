@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Section } from "./ui/Section";
 import { portfolioData } from "@/lib/data";
+import { getStatIconById } from "./icons/StatIcons";
 
 export function About() {
     const [personal, setPersonal] = useState<typeof portfolioData.personal | null>(null);
@@ -294,6 +295,11 @@ export function About() {
                                     background: "linear-gradient(90deg, transparent, #bcd200, transparent)",
                                 }}
                             />
+
+                            {/* Icon */}
+                            <div className="text-3xl md:text-4xl mb-3" style={{ color: "#bcd200" }}>
+                                {getStatIconById(stat.icon) || <span>{stat.icon}</span>}
+                            </div>
 
                             {/* Value with glow */}
                             <motion.div

@@ -7,6 +7,8 @@ import { portfolioData as defaultData } from "@/lib/data";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import { CoverImageUploader } from "@/components/admin/CoverImageUploader";
 import { ImageCropper } from "@/components/admin/ImageCropper";
+import { iconOptions, getSkillIcon, IconOption } from "@/components/icons/SkillIcons";
+import { statIconOptions, getStatIconById, StatIconOption } from "@/components/icons/StatIcons";
 
 type TabType = "personal" | "stats" | "skills" | "experiences" | "projects" | "social";
 
@@ -434,6 +436,8 @@ function PersonalTab({ data, setData }: TabProps) {
 }
 
 function StatsTab({ data, setData }: TabProps) {
+    const [openPickerIndex, setOpenPickerIndex] = useState<number | null>(null);
+
     const handleStatChange = (index: number, field: string, value: string) => {
         setData((prev) => {
             const newStats = [...(prev.stats || [])];
@@ -446,7 +450,7 @@ function StatsTab({ data, setData }: TabProps) {
         const newId = Math.max(...(data.stats || []).map((s) => s.id), 0) + 1;
         setData((prev) => ({
             ...prev,
-            stats: [...(prev.stats || []), { id: newId, label: "Nova Estatística", value: "0", icon: "📈" }],
+            stats: [...(prev.stats || []), { id: newId, label: "Nova Estatística", value: "0", icon: "trophy" }],
         }));
     };
 
@@ -455,6 +459,24 @@ function StatsTab({ data, setData }: TabProps) {
             ...prev,
             stats: (prev.stats || []).filter((_, i) => i !== index),
         }));
+    };
+
+    const handleSelectIcon = (index: number, iconId: string) => {
+        handleStatChange(index, "icon", iconId);
+        setOpenPickerIndex(null);
+    };
+
+    // Group icons by category
+    const categories = statIconOptions.reduce<Record<string, StatIconOption[]>>((acc, opt) => {
+        if (!acc[opt.category]) acc[opt.category] = [];
+        acc[opt.category].push(opt);
+        return acc;
+    }, {});
+
+    const getIconForStat = (iconValue: string) => {
+        const byId = getStatIconById(iconValue);
+        if (byId) return byId;
+        return <span className="text-[#bcd200]">{iconValue}</span>;
     };
 
     return (
@@ -490,13 +512,58 @@ function StatsTab({ data, setData }: TabProps) {
                             border: "1px solid rgba(188,210,0,0.1)",
                         }}
                     >
-                        <input
-                            type="text"
-                            value={stat.icon}
-                            onChange={(e) => handleStatChange(index, "icon", e.target.value)}
-                            className="w-12 text-center text-xl bg-transparent outline-none"
-                            placeholder="📊"
-                        />
+                        {/* Icon Picker */}
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setOpenPickerIndex(openPickerIndex === index ? null : index)}
+                                className="w-12 h-12 flex items-center justify-center text-2xl rounded-lg cursor-pointer transition-all hover:scale-110"
+                                style={{
+                                    background: "rgba(188,210,0,0.08)",
+                                    border: openPickerIndex === index ? "1px solid rgba(188,210,0,0.5)" : "1px solid rgba(188,210,0,0.15)",
+                                }}
+                                title="Selecionar ícone"
+                            >
+                                {getIconForStat(stat.icon)}
+                            </button>
+
+                            {/* Dropdown Picker */}
+                            {openPickerIndex === index && (
+                                <div
+                                    className="absolute top-14 left-0 z-50 w-[340px] max-h-[400px] overflow-y-auto rounded-xl p-3 space-y-3"
+                                    style={{
+                                        background: "linear-gradient(135deg, rgba(14,14,26,0.99) 0%, rgba(6,6,16,1) 100%)",
+                                        border: "1px solid rgba(188,210,0,0.25)",
+                                        boxShadow: "0 20px 40px rgba(0,0,0,0.8)",
+                                    }}
+                                >
+                                    {Object.entries(categories).map(([category, icons]) => (
+                                        <div key={category}>
+                                            <p className="text-[#8A8A9A] text-xs font-semibold uppercase tracking-wider mb-2 px-1">{category}</p>
+                                            <div className="grid grid-cols-5 gap-1.5">
+                                                {icons.map((opt) => (
+                                                    <button
+                                                        key={opt.id}
+                                                        type="button"
+                                                        onClick={() => handleSelectIcon(index, opt.id)}
+                                                        className="flex flex-col items-center gap-1 p-2 rounded-lg cursor-pointer transition-all hover:scale-105"
+                                                        style={{
+                                                            background: stat.icon === opt.id ? "rgba(188,210,0,0.15)" : "rgba(255,255,255,0.03)",
+                                                            border: stat.icon === opt.id ? "1px solid rgba(188,210,0,0.4)" : "1px solid transparent",
+                                                        }}
+                                                        title={opt.label}
+                                                    >
+                                                        <span className="text-lg">{opt.icon}</span>
+                                                        <span className="text-[8px] text-[#8A8A9A] truncate w-full text-center leading-tight">{opt.label}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         <input
                             type="text"
                             value={stat.value}
@@ -527,6 +594,8 @@ function StatsTab({ data, setData }: TabProps) {
 }
 
 function SkillsTab({ data, setData }: TabProps) {
+    const [openPickerIndex, setOpenPickerIndex] = useState<number | null>(null);
+
     const handleSkillChange = (index: number, field: string, value: string | number | boolean) => {
         setData((prev) => {
             const newSkills = [...prev.skills];
@@ -538,7 +607,7 @@ function SkillsTab({ data, setData }: TabProps) {
     const addSkill = () => {
         setData((prev) => ({
             ...prev,
-            skills: [...prev.skills, { name: "Nova Skill", level: 50, icon: "⭐", showLevel: true, description: "" }],
+            skills: [...prev.skills, { name: "Nova Skill", level: 50, icon: "photoshop", showLevel: true, description: "" }],
         }));
     };
 
@@ -547,6 +616,27 @@ function SkillsTab({ data, setData }: TabProps) {
             ...prev,
             skills: prev.skills.filter((_, i) => i !== index),
         }));
+    };
+
+    const handleSelectIcon = (index: number, iconId: string, iconLabel: string) => {
+        handleSkillChange(index, "icon", iconId);
+        handleSkillChange(index, "name", iconLabel);
+        setOpenPickerIndex(null);
+    };
+
+    // Group icons by category
+    const categories = iconOptions.reduce<Record<string, IconOption[]>>((acc, opt) => {
+        if (!acc[opt.category]) acc[opt.category] = [];
+        acc[opt.category].push(opt);
+        return acc;
+    }, {});
+
+    const getIconForSkill = (iconValue: string) => {
+        const byId = iconOptions.find((o) => o.id === iconValue);
+        if (byId) return byId.icon;
+        const byLabel = iconOptions.find((o) => o.label === iconValue);
+        if (byLabel) return byLabel.icon;
+        return getSkillIcon(iconValue);
     };
 
     return (
@@ -580,12 +670,57 @@ function SkillsTab({ data, setData }: TabProps) {
                     >
                         {/* Header row */}
                         <div className="flex items-center gap-4">
-                            <input
-                                type="text"
-                                value={skill.icon}
-                                onChange={(e) => handleSkillChange(index, "icon", e.target.value)}
-                                className="w-12 text-center text-xl bg-transparent outline-none"
-                            />
+                            {/* Icon Picker */}
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setOpenPickerIndex(openPickerIndex === index ? null : index)}
+                                    className="w-12 h-12 flex items-center justify-center text-2xl rounded-lg cursor-pointer transition-all hover:scale-110"
+                                    style={{
+                                        background: "rgba(188,210,0,0.08)",
+                                        border: openPickerIndex === index ? "1px solid rgba(188,210,0,0.5)" : "1px solid rgba(188,210,0,0.15)",
+                                    }}
+                                    title="Selecionar ícone"
+                                >
+                                    {getIconForSkill(skill.icon)}
+                                </button>
+
+                                {/* Dropdown Picker */}
+                                {openPickerIndex === index && (
+                                    <div
+                                        className="absolute top-14 left-0 z-50 w-[320px] max-h-[360px] overflow-y-auto rounded-xl p-3 space-y-3"
+                                        style={{
+                                            background: "linear-gradient(135deg, rgba(14,14,26,0.99) 0%, rgba(6,6,16,1) 100%)",
+                                            border: "1px solid rgba(188,210,0,0.25)",
+                                            boxShadow: "0 20px 40px rgba(0,0,0,0.8)",
+                                        }}
+                                    >
+                                        {Object.entries(categories).map(([category, icons]) => (
+                                            <div key={category}>
+                                                <p className="text-[#8A8A9A] text-xs font-semibold uppercase tracking-wider mb-2 px-1">{category}</p>
+                                                <div className="grid grid-cols-4 gap-1.5">
+                                                    {icons.map((opt) => (
+                                                        <button
+                                                            key={opt.id}
+                                                            type="button"
+                                                            onClick={() => handleSelectIcon(index, opt.id, opt.label)}
+                                                            className="flex flex-col items-center gap-1 p-2 rounded-lg cursor-pointer transition-all hover:scale-105"
+                                                            style={{
+                                                                background: skill.icon === opt.id ? "rgba(188,210,0,0.15)" : "rgba(255,255,255,0.03)",
+                                                                border: skill.icon === opt.id ? "1px solid rgba(188,210,0,0.4)" : "1px solid transparent",
+                                                            }}
+                                                            title={opt.label}
+                                                        >
+                                                            <span className="text-xl">{opt.icon}</span>
+                                                            <span className="text-[9px] text-[#8A8A9A] truncate w-full text-center leading-tight">{opt.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                             <input
                                 type="text"
                                 value={skill.name}
