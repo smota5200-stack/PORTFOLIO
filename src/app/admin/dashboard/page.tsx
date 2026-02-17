@@ -10,7 +10,7 @@ import { ImageCropper } from "@/components/admin/ImageCropper";
 import { iconOptions, getSkillIcon, IconOption } from "@/components/icons/SkillIcons";
 import { statIconOptions, getStatIconById, StatIconOption } from "@/components/icons/StatIcons";
 
-type TabType = "personal" | "stats" | "skills" | "experiences" | "projects" | "social";
+type TabType = "personal" | "stats" | "skills" | "experiences" | "projects" | "social" | "footer";
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -108,6 +108,7 @@ export default function AdminDashboard() {
         { id: "experiences", label: "Experiência", icon: "💼" },
         { id: "projects", label: "Projetos", icon: "🎨" },
         { id: "social", label: "Social", icon: "🔗" },
+        { id: "footer", label: "Rodapé", icon: "📄" },
     ];
 
     return (
@@ -224,6 +225,9 @@ export default function AdminDashboard() {
                     )}
                     {activeTab === "social" && (
                         <SocialTab data={data} setData={setData} />
+                    )}
+                    {activeTab === "footer" && (
+                        <FooterTab data={data} setData={setData} />
                     )}
                 </div>
 
@@ -1319,6 +1323,69 @@ function SocialTab({ data, setData }: TabProps) {
                         </button>
                     </div>
                 ))}
+            </div>
+        </div>
+    );
+}
+
+function FooterTab({ data, setData }: TabProps) {
+    const footer = (data as typeof data & { footer?: { copyrightText?: string; taglineIcon?: string; tagline?: string } }).footer || {};
+    const copyrightText = footer.copyrightText ?? "Todos os direitos reservados.";
+    const taglineIcon = footer.taglineIcon ?? "♠";
+    const tagline = footer.tagline ?? "Feito com ♠ para iGaming";
+    const currentYear = new Date().getFullYear();
+
+    const handleFooterChange = (field: string, value: string) => {
+        setData((prev) => ({
+            ...prev,
+            footer: {
+                ...((prev as typeof prev & { footer?: Record<string, string> }).footer || {}),
+                [field]: value,
+            },
+        }));
+    };
+
+    return (
+        <div className="space-y-6">
+            <h2 className="text-xl font-bold text-white mb-6">Rodapé</h2>
+
+            <p className="text-[#8A8A9A] text-sm mb-4">
+                Configure os textos que aparecem no rodapé do site. O nome e o ano são preenchidos automaticamente.
+            </p>
+
+            <InputField
+                label="Texto de Copyright (após o nome)"
+                value={copyrightText}
+                onChange={(v) => handleFooterChange("copyrightText", v)}
+            />
+            <InputField
+                label="Ícone animado do Tagline"
+                value={taglineIcon}
+                onChange={(v) => handleFooterChange("taglineIcon", v)}
+            />
+            <InputField
+                label="Tagline (frase do rodapé)"
+                value={tagline}
+                onChange={(v) => handleFooterChange("tagline", v)}
+            />
+
+            {/* Live Preview */}
+            <div
+                className="p-6 rounded-xl mt-6"
+                style={{
+                    background: "rgba(3,3,5,0.9)",
+                    border: "1px solid rgba(188,210,0,0.15)",
+                }}
+            >
+                <p className="text-[#8A8A9A] text-xs font-semibold uppercase tracking-wider mb-4">Preview</p>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p className="text-[#8A8A9A] text-sm">
+                        © {currentYear} <span className="text-[#bcd200]">{data.personal.name}</span>. {copyrightText}
+                    </p>
+                    <p className="text-[#8A8A9A] text-sm">
+                        {tagline}
+                    </p>
+                </div>
             </div>
         </div>
     );

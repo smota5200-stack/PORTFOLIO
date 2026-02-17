@@ -125,6 +125,12 @@ Com anos de experiência em motion graphics e key visuals, desenvolvo projetos q
     { name: "Behance", url: "https://behance.net/felipemota", icon: "🎨" },
     { name: "Instagram", url: "https://instagram.com/felipemota", icon: "📸" },
   ],
+
+  footer: {
+    copyrightText: "Todos os direitos reservados.",
+    taglineIcon: "♠",
+    tagline: "Feito com ♠ para iGaming",
+  },
 };
 
 export type PortfolioData = typeof portfolioData;
