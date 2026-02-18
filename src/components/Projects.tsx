@@ -9,6 +9,8 @@ import { ProjectWithImages } from "@/lib/usePortfolioDataRemote";
 
 export function Projects() {
     const [projects, setProjects] = useState<ProjectWithImages[]>([]);
+    const [sectionTitle, setSectionTitle] = useState(defaultData.projectsTitle ?? "Projetos");
+    const [sectionSubtitle, setSectionSubtitle] = useState(defaultData.projectsSubtitle ?? "Trabalhos selecionados do universo iGaming");
     const [isLoading, setIsLoading] = useState(true);
     const [hoveredId, setHoveredId] = useState<number | null>(null);
     const [selectedProject, setSelectedProject] = useState<ProjectWithImages | null>(null);
@@ -27,6 +29,8 @@ export function Projects() {
                     } else {
                         setProjects(defaultData.projects as ProjectWithImages[]);
                     }
+                    if (data.projectsTitle) setSectionTitle(data.projectsTitle);
+                    if (data.projectsSubtitle) setSectionSubtitle(data.projectsSubtitle);
                 } else {
                     setProjects(defaultData.projects as ProjectWithImages[]);
                 }
@@ -56,8 +60,8 @@ export function Projects() {
         <>
             <Section
                 id="projetos"
-                title="Projetos"
-                subtitle="Trabalhos selecionados do universo iGaming"
+                title={sectionTitle}
+                subtitle={sectionSubtitle}
                 variant="light"
             >
                 {/* Loading State */}
