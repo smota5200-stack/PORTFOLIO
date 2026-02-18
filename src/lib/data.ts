@@ -102,6 +102,9 @@ Com anos de experiência em motion graphics e key visuals, desenvolvo projetos q
     },
   ],
 
+  projectsTitle: "Projetos",
+  projectsSubtitle: "Trabalhos selecionados do universo iGaming",
+
   projects: [
     {
       id: 1,
