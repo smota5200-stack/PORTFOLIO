@@ -10,7 +10,7 @@ import { ImageCropper } from "@/components/admin/ImageCropper";
 import { iconOptions, getSkillIcon, IconOption } from "@/components/icons/SkillIcons";
 import { statIconOptions, getStatIconById, StatIconOption } from "@/components/icons/StatIcons";
 
-type TabType = "personal" | "stats" | "skills" | "experiences" | "projects" | "social" | "footer";
+type TabType = "personal" | "stats" | "skills" | "expertise" | "experiences" | "projects" | "social" | "footer";
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -43,6 +43,7 @@ export default function AdminDashboard() {
                         // Ensure arrays use Firebase data if not empty, otherwise fallback to defaults
                         stats: result.stats?.length > 0 ? result.stats : defaultData.stats,
                         skills: result.skills?.length > 0 ? result.skills : defaultData.skills,
+                        expertiseAreas: result.expertiseAreas?.length > 0 ? result.expertiseAreas : defaultData.expertiseAreas,
                         experiences: result.experiences?.length > 0 ? result.experiences : defaultData.experiences,
                         projects: result.projects?.length > 0 ? result.projects : defaultData.projects,
                         social: result.social?.length > 0 ? result.social : defaultData.social,
@@ -105,6 +106,7 @@ export default function AdminDashboard() {
         { id: "personal", label: "Pessoal", icon: "👤" },
         { id: "stats", label: "Estatísticas", icon: "📊" },
         { id: "skills", label: "Skills", icon: "⚡" },
+        { id: "expertise", label: "Expertise", icon: "🔸" },
         { id: "experiences", label: "Experiência", icon: "💼" },
         { id: "projects", label: "Projetos", icon: "🎨" },
         { id: "social", label: "Social", icon: "🔗" },
@@ -216,6 +218,9 @@ export default function AdminDashboard() {
                     )}
                     {activeTab === "skills" && (
                         <SkillsTab data={data} setData={setData} />
+                    )}
+                    {activeTab === "expertise" && (
+                        <ExpertiseTab data={data} setData={setData} />
                     )}
                     {activeTab === "experiences" && (
                         <ExperiencesTab data={data} setData={setData} />
@@ -786,6 +791,179 @@ function SkillsTab({ data, setData }: TabProps) {
                             <span className="text-[#8A8A9A] text-sm">
                                 {(skill as typeof skill & { showLevel?: boolean }).showLevel !== false ? "Mostrar barra de %" : "Ocultar barra de %"}
                             </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function ExpertiseTab({ data, setData }: TabProps) {
+    const areas = data.expertiseAreas || [];
+
+    const handleAreaChange = (index: number, field: string, value: string) => {
+        setData((prev) => {
+            const newAreas = [...(prev.expertiseAreas || [])];
+            newAreas[index] = { ...newAreas[index], [field]: value };
+            return { ...prev, expertiseAreas: newAreas };
+        });
+    };
+
+    const handleItemChange = (areaIndex: number, itemIndex: number, value: string) => {
+        setData((prev) => {
+            const newAreas = [...(prev.expertiseAreas || [])];
+            const newItems = [...newAreas[areaIndex].items];
+            newItems[itemIndex] = value;
+            newAreas[areaIndex] = { ...newAreas[areaIndex], items: newItems };
+            return { ...prev, expertiseAreas: newAreas };
+        });
+    };
+
+    const addItem = (areaIndex: number) => {
+        setData((prev) => {
+            const newAreas = [...(prev.expertiseAreas || [])];
+            newAreas[areaIndex] = {
+                ...newAreas[areaIndex],
+                items: [...newAreas[areaIndex].items, "Novo item"],
+            };
+            return { ...prev, expertiseAreas: newAreas };
+        });
+    };
+
+    const removeItem = (areaIndex: number, itemIndex: number) => {
+        setData((prev) => {
+            const newAreas = [...(prev.expertiseAreas || [])];
+            newAreas[areaIndex] = {
+                ...newAreas[areaIndex],
+                items: newAreas[areaIndex].items.filter((_, i) => i !== itemIndex),
+            };
+            return { ...prev, expertiseAreas: newAreas };
+        });
+    };
+
+    const addArea = () => {
+        const newId = areas.length > 0 ? Math.max(...areas.map((a) => a.id)) + 1 : 1;
+        setData((prev) => ({
+            ...prev,
+            expertiseAreas: [
+                ...(prev.expertiseAreas || []),
+                { id: newId, title: "Nova Especialidade", items: ["Item 1"] },
+            ],
+        }));
+    };
+
+    const removeArea = (index: number) => {
+        setData((prev) => ({
+            ...prev,
+            expertiseAreas: (prev.expertiseAreas || []).filter((_, i) => i !== index),
+        }));
+    };
+
+    return (
+        <div className="space-y-6">
+            {/* Section Title & Subtitle */}
+            <div
+                className="p-5 rounded-xl space-y-4"
+                style={{
+                    background: "rgba(6,6,16,0.5)",
+                    border: "1px solid rgba(188,210,0,0.1)",
+                }}
+            >
+                <p className="text-[#8A8A9A] text-xs font-semibold uppercase tracking-wider">Título da Seção</p>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <InputField
+                        label="Título"
+                        value={data.expertiseTitle ?? "Expertise & Especialidades"}
+                        onChange={(v) => setData((prev) => ({ ...prev, expertiseTitle: v }))}
+                    />
+                    <InputField
+                        label="Subtítulo"
+                        value={data.expertiseSubtitle ?? "Áreas de atuação e competências especializadas"}
+                        onChange={(v) => setData((prev) => ({ ...prev, expertiseSubtitle: v }))}
+                    />
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white">Áreas de Expertise</h2>
+                <motion.button
+                    onClick={addArea}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
+                    style={{
+                        background: "rgba(188,210,0,0.1)",
+                        color: "#bcd200",
+                        border: "1px solid rgba(188,210,0,0.3)",
+                    }}
+                >
+                    + Adicionar Área
+                </motion.button>
+            </div>
+
+            <div className="space-y-6">
+                {areas.map((area, areaIndex) => (
+                    <div
+                        key={area.id}
+                        className="p-6 rounded-xl space-y-4"
+                        style={{
+                            background: "rgba(6,6,16,0.5)",
+                            border: "1px solid rgba(188,210,0,0.1)",
+                        }}
+                    >
+                        <div className="flex justify-between items-start">
+                            <span className="text-[#bcd200] text-sm font-medium">🔸 #{areaIndex + 1}</span>
+                            <button
+                                onClick={() => removeArea(areaIndex)}
+                                className="p-2 text-[#FF0080] hover:bg-[#FF0080]/10 rounded-lg transition-colors cursor-pointer"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <InputField
+                            label="Título da Área"
+                            value={area.title}
+                            onChange={(v) => handleAreaChange(areaIndex, "title", v)}
+                        />
+
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[#8A8A9A] text-sm font-medium">Itens</label>
+                                <button
+                                    onClick={() => addItem(areaIndex)}
+                                    className="text-xs px-3 py-1 rounded-lg cursor-pointer transition-colors"
+                                    style={{
+                                        background: "rgba(188,210,0,0.08)",
+                                        color: "#bcd200",
+                                        border: "1px solid rgba(188,210,0,0.2)",
+                                    }}
+                                >
+                                    + Item
+                                </button>
+                            </div>
+                            {area.items.map((item, itemIndex) => (
+                                <div key={itemIndex} className="flex items-center gap-2">
+                                    <span
+                                        className="w-2 h-2 rounded-full flex-shrink-0"
+                                        style={{ background: "#bcd200" }}
+                                    />
+                                    <input
+                                        type="text"
+                                        value={item}
+                                        onChange={(e) => handleItemChange(areaIndex, itemIndex, e.target.value)}
+                                        className="flex-1 px-3 py-2 rounded-lg text-white text-sm bg-transparent outline-none"
+                                        style={{ border: "1px solid rgba(188,210,0,0.1)" }}
+                                    />
+                                    <button
+                                        onClick={() => removeItem(areaIndex, itemIndex)}
+                                        className="p-1.5 text-[#FF0080] hover:bg-[#FF0080]/10 rounded-lg transition-colors cursor-pointer text-xs"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 ))}

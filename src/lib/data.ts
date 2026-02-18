@@ -30,6 +30,51 @@ Com anos de experiência em motion graphics e key visuals, desenvolvo projetos q
     { name: "UI/UX Games", level: 85, icon: "🎮", showLevel: true, description: "Design de interfaces para jogos. Criação de HUDs, menus e experiência do usuário em jogos." },
   ],
 
+  expertiseTitle: "Expertise & Especialidades",
+  expertiseSubtitle: "Áreas de atuação e competências especializadas",
+  expertiseAreas: [
+    {
+      id: 1,
+      title: "Design Editorial & Publicações",
+      items: [
+        "Diagramação de livros impressos e digitais",
+        "Estruturação de ePub",
+        "Catálogos institucionais",
+        "Organização tipográfica e hierarquia visual",
+      ],
+    },
+    {
+      id: 2,
+      title: "Construção de Key Visual",
+      items: [
+        "Desenvolvimento de conceito visual",
+        "Direção de arte para campanhas",
+        "Desdobramento para múltiplos formatos",
+        "Padronização estética",
+      ],
+    },
+    {
+      id: 3,
+      title: "Retoque & Composição Avançada",
+      items: [
+        "Manipulação e fusão de imagens",
+        "Tratamento de luz, sombra e cor",
+        "Construção de mockups realistas",
+        "Ajustes técnicos para impressão e mídia digital",
+      ],
+    },
+    {
+      id: 4,
+      title: "Sistemas de Identidade Visual",
+      items: [
+        "Desenvolvimento de identidade",
+        "Aplicação consistente da marca",
+        "Criação de guidelines visuais",
+        "Adaptação para materiais online e offline",
+      ],
+    },
+  ],
+
   experienceTitle: "Experiência",
   experienceSubtitle: "Minha jornada no universo iGaming",
 
